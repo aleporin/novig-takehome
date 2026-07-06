@@ -9,17 +9,23 @@ from triage.schemas import Category, Classification, Urgency
 from triage.stages.classify import classify
 
 
-def test_classify_returns_parsed_result(make_ticket) -> None:
+def test_classify_returns_parsed_result_and_cost(make_ticket) -> None:
     config = Config()
     expected = Classification(
         category=Category.trading_mechanics, urgency=Urgency.low, confidence=0.8
     )
     client = FakeLLMClient([expected])
     result = classify(
-        make_ticket(), [], client=client, assembler=PromptAssembler(config), config=config
+        make_ticket(),
+        [],
+        client=client,
+        assembler=PromptAssembler(config),
+        config=config,
+        model=config.model_t1,
+        tier="T1",
     )
     assert result.classification is expected
     assert result.exemplar_ids == []
-    assert result.truncated is False
-    # the T1 model string was used for the call
-    assert client.calls[0].model == config.model_t1
+    assert result.call.tier == "T1"
+    assert result.call.model == config.model_t1
+    assert result.call.cost_usd >= 0.0
