@@ -21,7 +21,11 @@ extra review.
 - `unauthorized_access_reported`: transactions or access the user says they did not do.
 - `rg_signal`: problem-gambling signals — self-exclusion, deposit limits, loss of control.
 - `legal_threat`: lawyers, lawsuits, regulators (CFTC, CFPB, state AG), subpoenas, demands.
-- `disputes_novig_fact`: the user asserts a Novig-provided fact is wrong (balance, 1099, grade).
+- `disputes_novig_fact`: the user says a figure or outcome Novig provided — a balance,
+  1099 amount, market grade or settlement, payout, or fee — is wrong, or asks whether it is a
+  mistake. Fire even if they are polite or unsure. Do NOT fire when the user flags a small
+  discrepancy they attribute to their own error ("off by 30 cents, probably my math") and are
+  not asking Novig to correct one of its figures.
 - `asks_binding_policy_or_spec`: asks for a definitive policy/contract rule to rely on financially.
 - `jurisdictional_eligibility`: asks whether Novig is legal/available in a place.
 

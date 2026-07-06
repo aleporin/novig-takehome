@@ -59,6 +59,14 @@ def test_soft_flag_declines_after_passing_the_gate(make_ticket) -> None:
     assert "fact" in item.prediction.no_draft_reason
 
 
+def test_prescreen_backstops_a_missed_fact_dispute(make_ticket) -> None:
+    # Classifier says benign, but the ticket text disputes a Novig grade.
+    ticket = make_ticket(body="this market was graded wrong, it should have settled yes")
+    item = _run(ticket, _classification(Category.market_questions))
+    assert item.prediction.should_draft is False
+    assert "fact" in item.prediction.no_draft_reason
+
+
 def test_classifier_error_fails_closed(make_ticket) -> None:
     item = _run(make_ticket(), LLMError("boom"))
     assert item.prediction.should_draft is False

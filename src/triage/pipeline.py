@@ -97,7 +97,9 @@ def predict(
             _log_decision("no_draft", gate.rule)
             return Enriched(ticket.ticket_id, pred, prescreen_flags, cls, gate, result.exemplar_ids)
 
-        policy = apply_soft_policy(cls.flags, binding_spec_mode=config.binding_spec_mode)
+        policy = apply_soft_policy(
+            cls.flags, prescreen_flags, binding_spec_mode=config.binding_spec_mode
+        )
         confidence = _confidence(cls, result.truncated)
         if not policy.should_draft:
             pred = _no_draft(ticket, cls, policy.no_draft_reason, confidence=confidence)
