@@ -11,14 +11,18 @@ from triage.config import Config
 from triage.context.exemplars import is_exemplar
 from triage.factory import build_client, build_context
 from triage.logging_setup import report_logger
+from triage.routing.cost_tracker import build_cost_report
 
 from .dataset import load_tickets
 from .metrics import evaluate
 from .pipeline_run import (
+    collect_calls,
+    escalation_summary,
     layer_attribution,
     run_pipeline,
     scored_from,
     unattributed_no_draft,
+    write_cost,
     write_diagnostic,
     write_enriched,
 )
@@ -50,9 +54,31 @@ def main() -> None:
     for row in rows:
         log.info("  %s [%s]: %s", row["ticket_id"], row["category"], row["layer"])
 
-    run_dir = write_report(report, config, run_name="t1_train", predictor="T1 classifier (Haiku)")
+    escalation = escalation_summary(enriched, len(tickets))
+    cost = build_cost_report(collect_calls(enriched))
+    log.info(
+        "\nescalation: %d/%d = %.0f%%  reasons=%s",
+        escalation["escalated"],
+        escalation["total"],
+        100 * escalation["rate"],
+        escalation["reasons"],
+    )
+    log.info(
+        "cost: $%.4f total, %d calls; by tier %s; latency p50 %.0fms p95 %.0fms; cache hits %.0f%%",
+        cost.total_cost_usd,
+        cost.n_calls,
+        {k: round(v, 4) for k, v in cost.cost_by_tier.items()},
+        cost.p50_latency_ms,
+        cost.p95_latency_ms,
+        100 * cost.cache_hit_rate,
+    )
+
+    run_dir = write_report(
+        report, config, run_name="cascade_train", predictor="T1->T2 cascade (Haiku/Sonnet)"
+    )
     write_enriched(run_dir, enriched)
     write_diagnostic(run_dir, rows)
+    write_cost(run_dir, cost, escalation)
     log.info("\nwrote %s", run_dir)
 
     missing = unattributed_no_draft(rows)

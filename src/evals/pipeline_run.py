@@ -14,6 +14,7 @@ from triage.config import Config
 from triage.context.assembler import PromptAssembler
 from triage.llm.types import LLMClient
 from triage.pipeline import Enriched, predict
+from triage.routing.cost_tracker import CallRecord, CostReport
 from triage.schemas import SENSITIVE_CATEGORIES, Ticket
 from triage.stages.gate import HARD_RULE_FLAGS
 
@@ -91,6 +92,43 @@ def layer_attribution(enriched: list[Enriched], tickets: list[Ticket]) -> list[d
 def unattributed_no_draft(rows: list[dict]) -> list[str]:
     """Gold no-draft tickets that no layer flagged. Must always be empty."""
     return [row["ticket_id"] for row in rows if row["layer"] == "neither"]
+
+
+def collect_calls(enriched: list[Enriched]) -> list[CallRecord]:
+    """Flatten every model call made across the run."""
+    return [call for item in enriched for call in item.calls]
+
+
+def escalation_summary(enriched: list[Enriched], total: int) -> dict:
+    """Escalation count, rate, and a breakdown by trigger reason."""
+    reasons: dict[str, int] = {}
+    escalated = 0
+    for item in enriched:
+        if item.escalated:
+            escalated += 1
+            reasons[item.escalation_reason] = reasons.get(item.escalation_reason, 0) + 1
+    return {
+        "escalated": escalated,
+        "total": total,
+        "rate": escalated / total if total else 0.0,
+        "reasons": reasons,
+    }
+
+
+def write_cost(run_dir: Path, cost: CostReport, escalation: dict) -> None:
+    """Write the escalation and cost summary to cost.json."""
+    payload = {
+        "escalation": escalation,
+        "cost": {
+            "n_calls": cost.n_calls,
+            "total_cost_usd": cost.total_cost_usd,
+            "cost_by_tier": cost.cost_by_tier,
+            "p50_latency_ms": cost.p50_latency_ms,
+            "p95_latency_ms": cost.p95_latency_ms,
+            "cache_hit_rate": cost.cache_hit_rate,
+        },
+    }
+    (run_dir / "cost.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def write_enriched(run_dir: Path, enriched: list[Enriched]) -> None:
