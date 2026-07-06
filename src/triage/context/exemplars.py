@@ -32,7 +32,8 @@ EXEMPLAR_IDS: tuple[str, ...] = (
 EXEMPLAR_FLAGS: dict[str, tuple[str, ...]] = {
     "t_train_003": ("active_fraud", "unauthorized_access_reported"),
     "t_train_006": ("rg_signal",),
-    "t_train_009": ("legal_threat",),
+    # asserts a misgraded market (a disputed fact) alongside the legal threat
+    "t_train_009": ("legal_threat", "disputes_novig_fact"),
     "t_train_029": ("disputes_novig_fact",),
 }
 

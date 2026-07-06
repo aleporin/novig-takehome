@@ -15,10 +15,19 @@ def test_prompt_has_skills_taxonomy_and_records_exemplars(make_ticket) -> None:
         ticket, select_exemplars(pool, ticket.ticket_id)
     )
     assert "Novig Support" in prompt.system  # from GLOBAL.md
-    assert "## Taxonomy" in prompt.system
     assert prompt.exemplar_ids == list(EXEMPLAR_IDS)
     assert prompt.truncated is False
     assert ticket.subject in prompt.user
+
+
+def test_taxonomy_is_trimmed_to_classifier_sections(make_ticket) -> None:
+    system = PromptAssembler(Config()).classification_prompt(make_ticket(), []).system
+    assert "## Categories" in system
+    assert "## Urgency Levels" in system
+    assert "## When the System Must Not Draft" in system
+    # These describe the prediction shape / drafting, not classification.
+    assert "Output Schema" not in system
+    assert "Notes on Drafting" not in system
 
 
 def test_tiny_budget_drops_exemplars_and_truncates(make_ticket) -> None:

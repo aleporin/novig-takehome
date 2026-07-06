@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 
 from triage.config import Config
@@ -37,12 +38,32 @@ def _estimate_tokens(text: str) -> int:
     return len(text) // 4
 
 
+# Taxonomy sections the classifier needs. The Output Schema and Notes on Drafting
+# sections describe the prediction shape and drafting, not classification, so they
+# are left out to avoid pointing the model at a different JSON shape.
+_TAXONOMY_SECTIONS = ("Categories", "Urgency Levels", "When the System Must Not Draft")
+
+
+def _taxonomy_excerpt(text: str) -> str:
+    """Keep only the H2 sections a classifier needs, dropping the rest."""
+    kept = []
+    for chunk in re.split(r"^## ", text, flags=re.MULTILINE):
+        title = chunk.splitlines()[0].strip() if chunk.strip() else ""
+        if title in _TAXONOMY_SECTIONS:
+            kept.append("## " + chunk.rstrip())
+    return "\n\n".join(kept)
+
+
 def _ticket_block(ticket: Ticket) -> str:
     return f"SUBJECT: {ticket.subject}\nBODY: {ticket.body}"
 
 
 def _exemplar_block(ticket: Ticket) -> str:
-    """One few-shot example: the ticket text and its target classification JSON."""
+    """One few-shot example: the ticket text and its target classification JSON.
+
+    No confidence is shown: a constant would anchor the model and blind the
+    confidence-based escalation trigger, so the model self-reports it per ticket.
+    """
     label = ticket.label
     assert label is not None, "exemplars must be labeled train tickets"
     flags = {name: True for name in EXEMPLAR_FLAGS.get(ticket.ticket_id, ())}
@@ -50,7 +71,6 @@ def _exemplar_block(ticket: Ticket) -> str:
         "category": label.category.value,
         "urgency": label.urgency.value,
         "flags": flags,
-        "confidence": 0.95,
     }
     return f"{_ticket_block(ticket)}\nCLASSIFICATION: {json.dumps(target)}"
 
@@ -62,7 +82,7 @@ class PromptAssembler:
         skills = config.paths.skills
         self._global = (skills / "GLOBAL.md").read_text(encoding="utf-8")
         self._task = (skills / "classify" / "SKILL.md").read_text(encoding="utf-8")
-        self._taxonomy = config.paths.taxonomy.read_text(encoding="utf-8")
+        self._taxonomy = _taxonomy_excerpt(config.paths.taxonomy.read_text(encoding="utf-8"))
         self._budget = config.classify_token_budget
 
     def _system(self, exemplar_blocks: list[str]) -> str:
