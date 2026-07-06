@@ -1,14 +1,7 @@
-# Secrets and local environment
 secrets.env
-.env
-.env.local
-
-# Runtime artifacts (audit trail lives on disk, never in git)
 logs/
 .cache/
 results/tmp/
-
-# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -17,13 +10,9 @@ build/
 dist/
 .venv/
 venv/
-
-# Tooling caches
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
 .coverage
 htmlcov/
-
-# OS / editor cruft
 .DS_Store
