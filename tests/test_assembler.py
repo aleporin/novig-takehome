@@ -5,6 +5,7 @@ from __future__ import annotations
 from triage.config import Config
 from triage.context.assembler import PromptAssembler
 from triage.context.exemplars import EXEMPLAR_IDS, load_exemplar_pool, select_exemplars
+from triage.schemas import Category
 
 
 def test_prompt_has_skills_taxonomy_and_records_exemplars(make_ticket) -> None:
@@ -37,3 +38,17 @@ def test_tiny_budget_drops_exemplars_and_truncates(make_ticket) -> None:
     prompt = PromptAssembler(config).classification_prompt(ticket, select_exemplars(pool, "t1"))
     assert prompt.exemplar_ids == []
     assert prompt.truncated is True
+
+
+def test_drafting_prompt_has_rules_and_category_guidance(make_ticket) -> None:
+    prompt = PromptAssembler(Config()).drafting_prompt(make_ticket(), Category.deposits_withdrawals)
+    assert "Novig Support" in prompt.system  # global / draft rules
+    assert "payments ops" in prompt.system  # from deposits_withdrawals.md
+    assert make_ticket().subject in prompt.user
+
+
+def test_drafting_prompt_appends_regen_feedback(make_ticket) -> None:
+    prompt = PromptAssembler(Config()).drafting_prompt(
+        make_ticket(), Category.other, feedback="missing signature"
+    )
+    assert "missing signature" in prompt.user
