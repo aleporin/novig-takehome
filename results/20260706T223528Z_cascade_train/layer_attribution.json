@@ -1,0 +1,47 @@
+[
+  {
+    "ticket_id": "t_train_003",
+    "category": "account_compromise",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_006",
+    "category": "problem_gambling",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_009",
+    "category": "legal_regulatory",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_012",
+    "category": "legal_regulatory",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_017",
+    "category": "problem_gambling",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_020",
+    "category": "problem_gambling",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_023",
+    "category": "legal_regulatory",
+    "layer": "classifier_only"
+  },
+  {
+    "ticket_id": "t_train_024",
+    "category": "account_compromise",
+    "layer": "both"
+  },
+  {
+    "ticket_id": "t_train_029",
+    "category": "market_questions",
+    "layer": "both"
+  }
+]

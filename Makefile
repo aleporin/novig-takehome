@@ -59,6 +59,12 @@ train-metrics eval-train:
 baseline-metrics:
 	$(PYTHON) -m evals.run_baseline
 
+confidence-dist:
+	$(PYTHON) -m evals.confidence_dist
+
+threshold-sweep:
+	$(PYTHON) -m evals.threshold_sweep
+
 predict:
 	@$(PYTHON) -m evals.predict "$(TICKET)"
 

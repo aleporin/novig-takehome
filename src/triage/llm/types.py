@@ -32,7 +32,7 @@ class LLMRequest:
     system: str
     prompt: str
     response_schema: type[BaseModel] | None = None
-    temperature: float = 0.0
+    temperature: float | None = 0.0  # None omits the param for models that dropped it
     max_tokens: int = 1024
 
     def cache_key(self) -> str:

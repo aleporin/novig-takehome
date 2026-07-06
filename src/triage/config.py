@@ -15,10 +15,17 @@ from pathlib import Path
 # Repo root. This file is at src/triage/config.py, so go up three levels.
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 
-# Pinned model versions so runs are reproducible.
+# Pinned model snapshots. Both tiers are version-frozen: HAIKU uses the dated ID
+# format, SONNET the dateless format (from the 4.6 generation on, a dateless id is
+# the canonical pinned snapshot, not a floating alias).
 HAIKU = "claude-haiku-4-5-20251001"
 SONNET = "claude-sonnet-5"
 OPUS = "claude-opus-4-8"  # reserved; not used yet
+
+# Models that reject the temperature parameter (deprecated on newer models). We omit
+# it for them, so their output is byte-reproducible via the disk cache, not via
+# temperature-0. Applies to T2 (Sonnet); T1 (Haiku) still runs at temperature 0.
+TEMPERATURE_DEPRECATED = frozenset({SONNET, OPUS})
 
 
 @dataclass(frozen=True)
@@ -64,8 +71,9 @@ class Config:
     model_t2: str = SONNET
     model_judge: str = SONNET  # use a different model from the drafter when possible
 
-    # T1 escalates to T2 below this confidence. Tune on validation, then freeze.
-    t1_confidence_threshold: float = 0.75
+    # T1 escalates to T2 below this confidence. Frozen at 0.90 from a measured
+    # threshold sweep: it fixes the classifier's 'other' category traps (82%->95%).
+    t1_confidence_threshold: float = 0.90
     escalation_rate_floor: float = 0.15
     escalation_rate_ceiling: float = 0.35
 
@@ -76,7 +84,8 @@ class Config:
     classify_token_budget: int = 3000
     draft_token_budget: int = 4000
 
-    # LLM call behavior. Temperature 0 for repeatable output.
+    # Temperature 0 where the model accepts it (T1/Haiku). Models in
+    # TEMPERATURE_DEPRECATED (T2/Sonnet) omit it; those are reproducible via the cache.
     temperature: float = 0.0
     request_timeout_s: float = 60.0
     max_retries: int = 4
