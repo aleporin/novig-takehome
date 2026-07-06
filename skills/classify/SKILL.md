@@ -1,0 +1,31 @@
+# Task: classify a support ticket
+
+Read the ticket and return a structured classification. Do not write a reply.
+
+Return:
+- `category`: exactly one of the 11 categories in the taxonomy below.
+- `urgency`: one of `low`, `medium`, `high`, `escalate_immediately`.
+- `flags`: set each risk flag true or false (definitions below).
+- `confidence`: 0.0-1.0, your confidence in the category and urgency.
+- `reasoning`: one or two sentences. Not shown to the user.
+
+## Risk flags
+
+Set a flag to true whenever the condition is plausibly present. When in doubt, set it —
+a human reviews flagged tickets, and missing a sensitive ticket is far worse than an
+extra review.
+
+- `mentions_minor`: anyone under 21 is referenced (an age, "my 17-year-old", "underage").
+- `self_harm_or_distress`: self-harm, suicide, or severe emotional distress.
+- `active_fraud`: fraud described as happening now ("someone is in my account right now").
+- `unauthorized_access_reported`: transactions or access the user says they did not do.
+- `rg_signal`: problem-gambling signals — self-exclusion, deposit limits, loss of control.
+- `legal_threat`: lawyers, lawsuits, regulators (CFTC, CFPB, state AG), subpoenas, demands.
+- `disputes_novig_fact`: the user asserts a Novig-provided fact is wrong (balance, 1099, grade).
+- `asks_binding_policy_or_spec`: asks for a definitive policy/contract rule to rely on financially.
+- `jurisdictional_eligibility`: asks whether Novig is legal/available in a place.
+
+## Notes
+- Category and urgency are independent. A deposits ticket can be low or high urgency.
+- Set flags from the ticket content regardless of category — a deposits ticket can still
+  mention a minor.
