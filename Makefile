@@ -15,9 +15,9 @@ help:
 	@echo "smoke         run live API smoke tests (needs ANTHROPIC_API_KEY)"
 	@echo "lint          ruff check + format --check"
 	@echo "format        ruff format + autofix"
-	@echo "eval          run the eval set -> predictions.jsonl   [lands with the pipeline]"
-	@echo "train-metrics metrics report on labeled train data     [lands with the harness]"
-	@echo "eval-train    validation-pool run + full metrics        [lands with the harness]"
+	@echo "eval          run the eval set -> predictions.jsonl (currently the baseline)"
+	@echo "train-metrics metrics report on labeled train data"
+	@echo "eval-train    same as train-metrics (validation split lands with the classifier)"
 	@echo "predict       one ticket end-to-end decision trace      [lands with the pipeline]"
 	@echo "show-prompt   print an assembled prompt, no API call    [lands with the assembler]"
 
@@ -38,6 +38,12 @@ format:
 	$(PYTHON) -m ruff format --line-length 100 src tests
 	$(PYTHON) -m ruff check --fix --select $(RUFF_SELECT) $(RUFF_FLAGS) src tests
 
-eval train-metrics eval-train predict show-prompt:
+eval:
+	$(PYTHON) -m evals.run_eval
+
+train-metrics eval-train:
+	$(PYTHON) -m evals.run_train
+
+predict show-prompt:
 	@echo "'$@' is not wired yet — it arrives with a later branch."
 	@exit 1
