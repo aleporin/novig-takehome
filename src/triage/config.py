@@ -15,13 +15,15 @@ from pathlib import Path
 # Repo root. This file is at src/triage/config.py, so go up three levels.
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 
-# Pinned model versions so runs are reproducible.
+# Pinned model versions. HAIKU is a dated snapshot; SONNET is an alias (no dated
+# form available), so the T2 tier is not version-frozen the way T1 is.
 HAIKU = "claude-haiku-4-5-20251001"
 SONNET = "claude-sonnet-5"
 OPUS = "claude-opus-4-8"  # reserved; not used yet
 
-# Models that reject the temperature parameter (deprecated on newer models). We
-# omit it for them; they are deterministic enough and caching makes runs reproducible.
+# Models that reject the temperature parameter (deprecated on newer models). We omit
+# it for them, so their output is byte-reproducible via the disk cache, not via
+# temperature-0. Applies to T2 (Sonnet); T1 (Haiku) still runs at temperature 0.
 TEMPERATURE_DEPRECATED = frozenset({SONNET, OPUS})
 
 
@@ -81,7 +83,8 @@ class Config:
     classify_token_budget: int = 3000
     draft_token_budget: int = 4000
 
-    # LLM call behavior. Temperature 0 for repeatable output.
+    # Temperature 0 where the model accepts it (T1/Haiku). Models in
+    # TEMPERATURE_DEPRECATED (T2/Sonnet) omit it; those are reproducible via the cache.
     temperature: float = 0.0
     request_timeout_s: float = 60.0
     max_retries: int = 4
