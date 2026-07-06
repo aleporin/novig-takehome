@@ -7,7 +7,10 @@ export PYTHONPATH := src
 RUFF_SELECT := E,F,I,UP,SIM
 RUFF_FLAGS := --line-length 100 --target-version py313
 
-.PHONY: help install test smoke lint format eval train-metrics eval-train predict show-prompt
+# The three safety files that must stay 100% branch-covered.
+SAFETY_COV := --cov=triage.stages.gate --cov=triage.stages.prescreen --cov=triage.stages.draft_policy
+
+.PHONY: help install test smoke lint format coverage check-safety eval train-metrics eval-train predict show-prompt
 
 help:
 	@echo "install       install pinned dependencies"
@@ -15,6 +18,8 @@ help:
 	@echo "smoke         run live API smoke tests (needs ANTHROPIC_API_KEY)"
 	@echo "lint          ruff check + format --check"
 	@echo "format        ruff format + autofix"
+	@echo "coverage      enforce 100% branch coverage on the safety files"
+	@echo "check-safety  run the pre-screen on ad-hoc text: make check-safety TEXT=\"...\""
 	@echo "eval          run the eval set -> predictions.jsonl (currently the baseline)"
 	@echo "train-metrics metrics report on labeled train data"
 	@echo "eval-train    same as train-metrics (validation split lands with the classifier)"
@@ -29,6 +34,12 @@ test:
 
 smoke:
 	$(PYTHON) -m pytest -m live
+
+coverage:
+	$(PYTHON) -m pytest -m "not live" $(SAFETY_COV) --cov-branch --cov-report=term-missing --cov-fail-under=100
+
+check-safety:
+	@$(PYTHON) -m triage.stages.prescreen "$(TEXT)"
 
 lint:
 	$(PYTHON) -m ruff check --select $(RUFF_SELECT) $(RUFF_FLAGS) src tests
