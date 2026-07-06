@@ -1,25 +1,30 @@
-"""Run the baseline over the eval set, write predictions.jsonl, and validate it.
+"""Run the classifier pipeline over the eval set, write predictions.jsonl, validate.
 
-The eval tickets are unlabeled, so there are no accuracy numbers here; this proves
-the end-to-end path and that the output passes the contract validator.
+Drafts are still placeholders until the drafting phase, so the draft text is not
+final here; the category, urgency, and draft/no-draft decisions are real.
 """
 
 from __future__ import annotations
 
 from triage.config import Config
+from triage.factory import build_client, build_context
+from triage.logging_setup import report_logger
 
-from .baseline import MajorityBaseline
 from .dataset import load_tickets
+from .pipeline_run import run_pipeline
 from .validate import validate_file
 
 
 def main() -> None:
     config = Config()
-    train = load_tickets(config.paths.tickets_train)
+    client = build_client(config)
+    assembler, pool = build_context(config)
     eval_tickets = load_tickets(config.paths.tickets_eval)
 
-    baseline = MajorityBaseline.from_labels(train)
-    predictions = [baseline.predict(t) for t in eval_tickets]
+    enriched = run_pipeline(
+        eval_tickets, client=client, assembler=assembler, exemplar_pool=pool, config=config
+    )
+    predictions = [item.prediction for item in enriched]
 
     out = config.paths.predictions
     out.write_text("\n".join(p.to_jsonl_line() for p in predictions) + "\n", encoding="utf-8")
@@ -27,7 +32,7 @@ def main() -> None:
     problems = validate_file(out, config.paths.tickets_eval)
     if problems:
         raise SystemExit("predictions.jsonl failed validation:\n" + "\n".join(problems))
-    print(f"wrote {out} ({len(predictions)} predictions), validation OK")
+    report_logger().info("wrote %s (%d predictions), validation OK", out, len(predictions))
 
 
 if __name__ == "__main__":
