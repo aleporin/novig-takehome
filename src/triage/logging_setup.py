@@ -13,6 +13,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+import sys
 from collections.abc import Iterator
 from contextvars import ContextVar
 from datetime import UTC, datetime
@@ -81,6 +82,23 @@ class JsonLinesFormatter(logging.Formatter):
         if record.exc_info:
             payload["exc"] = self.formatException(record.exc_info)
         return json.dumps(payload, default=str)
+
+
+def report_logger() -> logging.Logger:
+    """Logger for user-facing CLI output: plain lines to stdout, no prefixes.
+
+    Used by the eval runners and inspection commands instead of print(). It has
+    its own message-only handler and does not propagate, so report text stays
+    clean and separate from the structured audit log.
+    """
+    logger = logging.getLogger("triage.report")
+    if not logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+    return logger
 
 
 @contextlib.contextmanager

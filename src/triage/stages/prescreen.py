@@ -138,6 +138,8 @@ def prescreen(subject: str, body: str) -> RiskFlags:
 if __name__ == "__main__":  # pragma: no cover - manual probing via `make check-safety`
     import sys
 
+    from triage.logging_setup import report_logger
+
     flags = prescreen("", sys.argv[1] if len(sys.argv) > 1 else "")
     fired = [name for name, value in flags.model_dump().items() if value]
-    print("flags fired:", ", ".join(fired) if fired else "(none)")
+    report_logger().info("flags fired: %s", ", ".join(fired) if fired else "(none)")
