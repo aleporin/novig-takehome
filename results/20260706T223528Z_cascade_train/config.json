@@ -1,0 +1,11 @@
+{
+  "predictor": "T1->T2 cascade (Haiku/Sonnet)",
+  "model_t1": "claude-haiku-4-5-20251001",
+  "model_t2": "claude-sonnet-5",
+  "model_judge": "claude-sonnet-5",
+  "t1_confidence_threshold": 0.9,
+  "escalation_rate_floor": 0.15,
+  "escalation_rate_ceiling": 0.35,
+  "temperature": 0.0,
+  "skills": "none yet"
+}
