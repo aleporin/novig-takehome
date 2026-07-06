@@ -60,12 +60,12 @@
     }
   },
   "false_decline": {
-    "numerator": 0,
+    "numerator": 1,
     "denominator": 17,
     "estimate": {
-      "point": 0.0,
+      "point": 0.058823529411764705,
       "ci_low": 0.0,
-      "ci_high": 0.0
+      "ci_high": 0.17647058823529413
     }
   },
   "flag_notes": []
