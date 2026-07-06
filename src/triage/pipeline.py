@@ -23,11 +23,12 @@ from triage.schemas import Category, Classification, Prediction, RiskFlags, Tick
 from triage.stages.classify import classify
 from triage.stages.draft_policy import apply_soft_policy
 from triage.stages.gate import GateDecision, evaluate_gate
+from triage.stages.output_guard import produce_draft
 from triage.stages.prescreen import prescreen
 
 logger = logging.getLogger(__name__)
 
-_DRAFT_PLACEHOLDER = "[draft generation lands in a later phase]"
+_GUARDRAIL_REASON = "draft failed output guardrail"
 _ERROR_REASON = "system error — routed to human review"
 _TRUNCATED_CONFIDENCE_CAP = 0.6
 
@@ -208,12 +209,21 @@ def predict(
             pred = _no_draft(ticket, cls, policy.no_draft_reason, confidence)
             return _enriched(ticket, pred, prescreen_flags, gate, routed)
 
+        draft, draft_calls = produce_draft(
+            ticket, cls, client=client, assembler=assembler, config=config
+        )
+        routed.calls.extend(draft_calls)
+        if draft is None:
+            _log_decision("no_draft", "draft_failed_guardrail")
+            pred = _no_draft(ticket, cls, _GUARDRAIL_REASON, confidence)
+            return _enriched(ticket, pred, prescreen_flags, gate, routed)
+
         pred = Prediction(
             ticket_id=ticket.ticket_id,
             category=cls.category,
             urgency=cls.urgency,
             should_draft=True,
-            draft_response=_DRAFT_PLACEHOLDER,
+            draft_response=draft,
             confidence=confidence,
         )
         _log_decision("draft", None)

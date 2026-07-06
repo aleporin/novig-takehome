@@ -12,6 +12,10 @@ from triage.context.assembler import PromptAssembler
 from triage.llm.types import LLMError
 from triage.pipeline import predict
 from triage.schemas import Category, Classification, RiskFlags, Urgency
+from triage.stages.output_guard import AuditVerdict
+
+_GOOD_DRAFT = "Hi, thanks for reaching out about this. Here is what happens next.\n\nNovig Support"
+_CLEAN_AUDIT = AuditVerdict(violates=False)
 
 
 def _cls(category, urgency=Urgency.low, confidence=0.9, **flags) -> Classification:
@@ -31,12 +35,15 @@ def _run(ticket, *scripted):
     )
 
 
-def test_benign_high_confidence_stays_on_t1(make_ticket) -> None:
-    item = _run(make_ticket(), _cls(Category.trading_mechanics, confidence=0.9))
+def test_benign_high_confidence_drafts_on_t1(make_ticket) -> None:
+    # classify (T1) + draft + audit = 3 calls; no escalation.
+    item = _run(
+        make_ticket(), _cls(Category.trading_mechanics, confidence=0.9), _GOOD_DRAFT, _CLEAN_AUDIT
+    )
     assert item.prediction.should_draft is True
+    assert item.prediction.draft_response == _GOOD_DRAFT
     assert item.tier == "T1"
     assert item.escalated is False
-    assert len(item.calls) == 1
 
 
 def test_sensitive_category_escalates_and_blocks(make_ticket) -> None:
@@ -72,7 +79,13 @@ def test_soft_flag_escalates_then_declines(make_ticket) -> None:
 
 
 def test_t1_failure_repairs_with_t2(make_ticket) -> None:
-    item = _run(make_ticket(), LLMError("bad json"), _cls(Category.trading_mechanics))
+    item = _run(
+        make_ticket(),
+        LLMError("bad json"),
+        _cls(Category.trading_mechanics),
+        _GOOD_DRAFT,
+        _CLEAN_AUDIT,
+    )
     assert item.tier == "T2"
     assert item.escalation_reason == "t1_failure"
     assert item.prediction.should_draft is True
