@@ -42,6 +42,6 @@
   {
     "ticket_id": "t_train_029",
     "category": "market_questions",
-    "layer": "neither"
+    "layer": "both"
   }
 ]
