@@ -1,0 +1,72 @@
+{
+  "n": 22,
+  "category_accuracy": {
+    "point": 0.8181818181818182,
+    "ci_low": 0.6363636363636364,
+    "ci_high": 0.9545454545454546
+  },
+  "urgency_accuracy": {
+    "point": 0.8181818181818182,
+    "ci_low": 0.6363636363636364,
+    "ci_high": 0.9545454545454546
+  },
+  "severity_weighted_error": {
+    "point": 0.18181818181818182,
+    "ci_low": 0.045454545454545456,
+    "ci_high": 0.36363636363636365
+  },
+  "urgency_confusion": {
+    "low": {
+      "low": 9,
+      "medium": 2,
+      "high": 0,
+      "escalate_immediately": 0
+    },
+    "medium": {
+      "low": 0,
+      "medium": 4,
+      "high": 1,
+      "escalate_immediately": 0
+    },
+    "high": {
+      "low": 0,
+      "medium": 0,
+      "high": 2,
+      "escalate_immediately": 1
+    },
+    "escalate_immediately": {
+      "low": 0,
+      "medium": 0,
+      "high": 0,
+      "escalate_immediately": 3
+    }
+  },
+  "false_draft_hard": {
+    "numerator": 0,
+    "denominator": 5,
+    "estimate": {
+      "point": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
+  },
+  "false_draft_soft": {
+    "numerator": 0,
+    "denominator": 0,
+    "estimate": {
+      "point": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
+  },
+  "false_decline": {
+    "numerator": 0,
+    "denominator": 17,
+    "estimate": {
+      "point": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
+  },
+  "flag_notes": []
+}

@@ -10,21 +10,22 @@ RUFF_FLAGS := --line-length 100 --target-version py313
 # The three safety files that must stay 100% branch-covered.
 SAFETY_COV := --cov=triage.stages.gate --cov=triage.stages.prescreen --cov=triage.stages.draft_policy
 
-.PHONY: help install test smoke lint format coverage check-safety eval train-metrics eval-train predict show-prompt
+.PHONY: help install test smoke lint format coverage check-safety eval train-metrics eval-train baseline-metrics predict show-prompt
 
 help:
-	@echo "install       install pinned dependencies"
-	@echo "test          run the offline suite (no API key)"
-	@echo "smoke         run live API smoke tests (needs ANTHROPIC_API_KEY)"
-	@echo "lint          ruff check + format --check"
-	@echo "format        ruff format + autofix"
-	@echo "coverage      enforce 100% branch coverage on the safety files"
-	@echo "check-safety  run the pre-screen on ad-hoc text: make check-safety TEXT=\"...\""
-	@echo "eval          run the eval set -> predictions.jsonl (currently the baseline)"
-	@echo "train-metrics metrics report on labeled train data"
-	@echo "eval-train    same as train-metrics (validation split lands with the classifier)"
-	@echo "predict       one ticket end-to-end decision trace      [lands with the pipeline]"
-	@echo "show-prompt   print an assembled prompt, no API call    [lands with the assembler]"
+	@echo "install         install pinned dependencies"
+	@echo "test            run the offline suite (no API key)"
+	@echo "smoke           run live API smoke tests (needs ANTHROPIC_API_KEY)"
+	@echo "lint            ruff check + format --check"
+	@echo "format          ruff format + autofix"
+	@echo "coverage        enforce 100% branch coverage on the safety files"
+	@echo "check-safety    run the pre-screen on ad-hoc text: make check-safety TEXT=\"...\""
+	@echo "eval            run the classifier over the eval set -> predictions.jsonl (real API)"
+	@echo "train-metrics   classifier metrics on the train validation pool (real API)"
+	@echo "eval-train      same as train-metrics"
+	@echo "baseline-metrics  majority-class baseline metrics, for comparison (no API)"
+	@echo "predict         one ticket end-to-end trace: make predict TICKET=<id> (real API)"
+	@echo "show-prompt     print the assembled prompt, no API: make show-prompt TICKET=<id>"
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -55,6 +56,11 @@ eval:
 train-metrics eval-train:
 	$(PYTHON) -m evals.run_train
 
-predict show-prompt:
-	@echo "'$@' is not wired yet — it arrives with a later branch."
-	@exit 1
+baseline-metrics:
+	$(PYTHON) -m evals.run_baseline
+
+predict:
+	@$(PYTHON) -m evals.predict "$(TICKET)"
+
+show-prompt:
+	@$(PYTHON) -m evals.show_prompt "$(TICKET)"

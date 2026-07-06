@@ -127,17 +127,51 @@ def _mentions_minor(text: str) -> bool:
     return False
 
 
+# Soft-rule backstop: the user says a Novig figure or grade is wrong. This is the
+# second detector for disputes_novig_fact, so a classifier miss on a real dispute
+# does not slip through. Suppressed when the user blames their own error.
+_DISPUTE = [
+    r"\bmis-?grad",
+    r"\bwrong(ly)?\s+(graded|settled|resolved|priced)\b",
+    r"\bgraded\s+(it\s+)?(wrong|incorrectly)\b",
+    r"\b(settled|resolved)\s+(wrong|incorrectly)\b",
+    r"\bshould\s+have\s+(settled|graded|resolved|won|been|paid)\b",
+    r"\b(is|must be)\s+(this\s+)?a\s+mistake\b",
+    r"\bthis\s+is\s+(wrong|a mistake|an error)\b",
+    r"\b(balance|amount|total|payout|1099|figure|grade|number)\s+(is|looks|seems)\s+(wrong|off|incorrect)\b",
+    r"\bwrong\s+(balance|amount|payout|1099|grade|number)\b",
+    r"\b(higher|lower|more|less|different)\s+than\s+(what\s+)?i\s+(calculated|expected|had|got)\b",
+    r"\boff\s+from\s+what\s+i\s+(calculated|expected)\b",
+]
+_DISPUTE_RX = [re.compile(p, _FLAGS) for p in _DISPUTE]
+# Self-attribution: the user blames their own math, so it is not a Novig dispute.
+_SELF_ATTRIB = re.compile(
+    r"\b(my math|probably my|my (mistake|error|fault|bad)|on my (end|part|side)|"
+    r"i (probably )?miscalc|might be me|maybe i)\b",
+    _FLAGS,
+)
+
+
+def _disputes_fact(text: str) -> bool:
+    if _SELF_ATTRIB.search(text):
+        return False
+    return any(rx.search(text) for rx in _DISPUTE_RX)
+
+
 def prescreen(subject: str, body: str) -> RiskFlags:
     """Return the risk flags the lexical screen finds in a ticket's text."""
     text = f"{subject}\n{body}"
     found = {flag: any(rx.search(text) for rx in rxs) for flag, rxs in _COMPILED.items()}
     found["mentions_minor"] = _mentions_minor(text)
+    found["disputes_novig_fact"] = _disputes_fact(text)
     return RiskFlags(**found)
 
 
 if __name__ == "__main__":  # pragma: no cover - manual probing via `make check-safety`
     import sys
 
+    from triage.logging_setup import report_logger
+
     flags = prescreen("", sys.argv[1] if len(sys.argv) > 1 else "")
     fired = [name for name, value in flags.model_dump().items() if value]
-    print("flags fired:", ", ".join(fired) if fired else "(none)")
+    report_logger().info("flags fired: %s", ", ".join(fired) if fired else "(none)")

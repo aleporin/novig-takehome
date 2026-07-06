@@ -27,6 +27,9 @@ def _fired(subject: str, body: str) -> set[str]:
         ("I'm going to hurt myself because of gambling", "self_harm_or_distress"),
         ("he is a minor and wants to sign up", "mentions_minor"),
         ("are you underage? he is a teenager", "mentions_minor"),
+        ("your platform misgrading the Heat/Celtics market last Friday", "disputes_novig_fact"),
+        ("this market was graded wrong, it should have settled yes", "disputes_novig_fact"),
+        ("my payout amount looks wrong, is this a mistake?", "disputes_novig_fact"),
     ],
 )
 def test_sensitive_text_trips_the_right_flag(text, expected) -> None:
@@ -34,9 +37,25 @@ def test_sensitive_text_trips_the_right_flag(text, expected) -> None:
 
 
 @pytest.mark.parametrize(
+    "text",
+    [
+        # 018: a trivial discrepancy the user blames on themselves must not fire.
+        "my balance is off from what I calculated by 30 cents, probably my math",
+        "the total seems higher than I expected but might be me miscalculating",
+    ],
+)
+def test_self_attributed_discrepancy_does_not_dispute(text) -> None:
+    assert "disputes_novig_fact" not in _fired("", text)
+
+
+@pytest.mark.parametrize(
     "subject, body",
     [
-        ("balance wrong by 30 cents", "this is super minor but my balance is off by 30 cents"),
+        (
+            "balance wrong by like 30 cents",
+            "this is super minor but my balance is off from what I calculated by "
+            "about 30 cents. probably my math but figured I'd flag.",
+        ),
         ("market question", "when does the attorney general election market settle?"),
         ("love the app", "my son loves using novig, great product"),
         ("withdrawal delay", "my withdrawal is 19 hours late, please help"),
