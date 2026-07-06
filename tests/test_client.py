@@ -99,6 +99,17 @@ def test_invalid_structured_output_raises_llm_error() -> None:
         client.complete(req)
 
 
+def test_invalid_structured_output_is_never_cached(tmp_path) -> None:
+    cache = ResponseCache(tmp_path)
+    client = _no_wait_client(
+        lambda params: _tool_message({"category": "not_a_category"}), cache=cache
+    )
+    req = LLMRequest(model="m", system="s", prompt="p", response_schema=Classification)
+    with pytest.raises(LLMError):
+        client.complete(req)
+    assert cache.get(req.cache_key()) is None  # the bad response did not poison the cache
+
+
 def test_second_identical_call_is_served_from_cache(tmp_path) -> None:
     calls = {"n": 0}
 

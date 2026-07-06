@@ -88,7 +88,8 @@ class AnthropicClient:
             "output_tokens": usage.output_tokens,
         }
         if self._cache is not None:
-            self._cache.set(key, payload)
+            # Validate before caching: a response that won't parse is never stored.
+            self._cache.set(key, payload, validator=lambda p: _parse(request, p["text"]))
         response = self._response_from_payload(request, payload, cache_hit=False)
         response.latency_ms = latency_ms
         return response
