@@ -51,12 +51,18 @@ def scored_from(
     return scored
 
 
+# Flags that cause a no-draft, hard or soft, so attribution reflects every reason a
+# ticket is declined -- not just the hard rules.
+_SOFT_FLAGS = ("disputes_novig_fact", "jurisdictional_eligibility", "asks_binding_policy_or_spec")
+_NO_DRAFT_FLAGS = HARD_RULE_FLAGS + _SOFT_FLAGS
+
+
 def _classifier_caught(item: Enriched) -> bool:
     if item.classification is None:
         return False
     if item.classification.category in SENSITIVE_CATEGORIES:
         return True
-    return any(getattr(item.classification.flags, f) for f in HARD_RULE_FLAGS)
+    return any(getattr(item.classification.flags, f) for f in _NO_DRAFT_FLAGS)
 
 
 def layer_attribution(enriched: list[Enriched], tickets: list[Ticket]) -> list[dict]:
@@ -67,7 +73,7 @@ def layer_attribution(enriched: list[Enriched], tickets: list[Ticket]) -> list[d
         label = by_id[item.ticket_id].label
         if label is None or label.should_draft:
             continue
-        lexicon = any(getattr(item.prescreen_flags, f) for f in HARD_RULE_FLAGS)
+        lexicon = any(getattr(item.prescreen_flags, f) for f in _NO_DRAFT_FLAGS)
         classifier = _classifier_caught(item)
         layer = (
             "both"
@@ -80,6 +86,11 @@ def layer_attribution(enriched: list[Enriched], tickets: list[Ticket]) -> list[d
         )
         rows.append({"ticket_id": item.ticket_id, "category": label.category.value, "layer": layer})
     return rows
+
+
+def unattributed_no_draft(rows: list[dict]) -> list[str]:
+    """Gold no-draft tickets that no layer flagged. Must always be empty."""
+    return [row["ticket_id"] for row in rows if row["layer"] == "neither"]
 
 
 def write_enriched(run_dir: Path, enriched: list[Enriched]) -> None:

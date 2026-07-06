@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evals.pipeline_run import layer_attribution, scored_from
+from evals.pipeline_run import layer_attribution, scored_from, unattributed_no_draft
 from triage.pipeline import Enriched
 from triage.schemas import (
     Category,
@@ -68,6 +68,30 @@ def test_layer_attribution_classifies_each_source() -> None:
     ]
     rows = {r["ticket_id"]: r["layer"] for r in layer_attribution(enriched, tickets)}
     assert rows == {"A": "both", "B": "classifier_only", "C": "lexicon_only"}
+
+
+def test_soft_dispute_attributes_and_guard_passes() -> None:
+    # A soft fact-dispute in a benign category still attributes (the 029 case).
+    tickets = [_ticket("E", Category.market_questions, False)]
+    enriched = [
+        _enriched(
+            "E",
+            prescreen={"disputes_novig_fact": True},
+            classifier_category=Category.market_questions,
+            classifier_flags={"disputes_novig_fact": True},
+        )
+    ]
+    rows = layer_attribution(enriched, tickets)
+    assert rows[0]["layer"] == "both"
+    assert unattributed_no_draft(rows) == []
+
+
+def test_guard_catches_an_unattributed_no_draft() -> None:
+    tickets = [_ticket("F", Category.market_questions, False)]
+    enriched = [_enriched("F", prescreen={}, classifier_category=Category.market_questions)]
+    rows = layer_attribution(enriched, tickets)
+    assert rows[0]["layer"] == "neither"
+    assert unattributed_no_draft(rows) == ["F"]
 
 
 def test_scored_from_filters_to_requested_ids() -> None:

@@ -18,6 +18,7 @@ from .pipeline_run import (
     layer_attribution,
     run_pipeline,
     scored_from,
+    unattributed_no_draft,
     write_diagnostic,
     write_enriched,
 )
@@ -53,6 +54,10 @@ def main() -> None:
     write_enriched(run_dir, enriched)
     write_diagnostic(run_dir, rows)
     log.info("\nwrote %s", run_dir)
+
+    missing = unattributed_no_draft(rows)
+    if missing:
+        raise SystemExit(f"regression: gold no-draft tickets flagged by neither layer: {missing}")
 
 
 if __name__ == "__main__":
