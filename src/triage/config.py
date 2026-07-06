@@ -15,8 +15,9 @@ from pathlib import Path
 # Repo root. This file is at src/triage/config.py, so go up three levels.
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 
-# Pinned model versions. HAIKU is a dated snapshot; SONNET is an alias (no dated
-# form available), so the T2 tier is not version-frozen the way T1 is.
+# Pinned model snapshots. Both tiers are version-frozen: HAIKU uses the dated ID
+# format, SONNET the dateless format (from the 4.6 generation on, a dateless id is
+# the canonical pinned snapshot, not a floating alias).
 HAIKU = "claude-haiku-4-5-20251001"
 SONNET = "claude-sonnet-5"
 OPUS = "claude-opus-4-8"  # reserved; not used yet
