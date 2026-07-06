@@ -20,6 +20,10 @@ HAIKU = "claude-haiku-4-5-20251001"
 SONNET = "claude-sonnet-5"
 OPUS = "claude-opus-4-8"  # reserved; not used yet
 
+# Models that reject the temperature parameter (deprecated on newer models). We
+# omit it for them; they are deterministic enough and caching makes runs reproducible.
+TEMPERATURE_DEPRECATED = frozenset({SONNET, OPUS})
+
 
 @dataclass(frozen=True)
 class Pricing:
@@ -64,8 +68,9 @@ class Config:
     model_t2: str = SONNET
     model_judge: str = SONNET  # use a different model from the drafter when possible
 
-    # T1 escalates to T2 below this confidence. Tune on validation, then freeze.
-    t1_confidence_threshold: float = 0.75
+    # T1 escalates to T2 below this confidence. Frozen at 0.90 from a measured
+    # threshold sweep: it fixes the classifier's 'other' category traps (82%->95%).
+    t1_confidence_threshold: float = 0.90
     escalation_rate_floor: float = 0.15
     escalation_rate_ceiling: float = 0.35
 

@@ -125,9 +125,10 @@ def _build_params(request: LLMRequest) -> dict[str, Any]:
         "model": request.model,
         "system": request.system,
         "max_tokens": request.max_tokens,
-        "temperature": request.temperature,
         "messages": [{"role": "user", "content": request.prompt}],
     }
+    if request.temperature is not None:
+        params["temperature"] = request.temperature
     if request.response_schema is not None:
         params["tools"] = [
             {
