@@ -6,9 +6,11 @@ final here; the category, urgency, and draft/no-draft decisions are real.
 
 from __future__ import annotations
 
+import logging
+
 from triage.config import Config
 from triage.factory import build_client, build_context
-from triage.logging_setup import report_logger
+from triage.logging_setup import report_logger, setup_logging
 
 from .dataset import load_tickets
 from .pipeline_run import run_pipeline
@@ -17,6 +19,7 @@ from .validate import validate_file
 
 def main() -> None:
     config = Config()
+    setup_logging(console_level=logging.WARNING)
     client = build_client(config)
     assembler, pool = build_context(config)
     eval_tickets = load_tickets(config.paths.tickets_eval)

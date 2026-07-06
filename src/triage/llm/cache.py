@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 
@@ -30,9 +31,19 @@ class ResponseCache:
         with path.open(encoding="utf-8") as handle:
             return json.load(handle)
 
-    def set(self, key: str, payload: dict) -> None:
-        """Store payload under key. Writes to a temp file then renames, so a
-        crash mid-write can't leave a half-written file."""
+    def set(
+        self, key: str, payload: dict, *, validator: Callable[[dict], object] | None = None
+    ) -> None:
+        """Store payload under key, but only if it is valid.
+
+        If a validator is given it must accept the payload without raising; if it
+        raises, nothing is written and the error propagates. This makes it
+        structurally impossible to cache a malformed or error response — the cache
+        only ever holds things that already parsed. Writes to a temp file then
+        renames, so a crash mid-write can't leave a half-written file.
+        """
+        if validator is not None:
+            validator(payload)  # raises on invalid; nothing below runs
         path = self._path(key)
         tmp = path.with_suffix(".json.tmp")
         with tmp.open("w", encoding="utf-8") as handle:

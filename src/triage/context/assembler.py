@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 from triage.config import Config
 from triage.logging_setup import STAGE
-from triage.schemas import Ticket
+from triage.schemas import Category, Ticket
 
 from .exemplars import EXEMPLAR_FLAGS
 
@@ -84,6 +84,8 @@ class PromptAssembler:
         self._task = (skills / "classify" / "SKILL.md").read_text(encoding="utf-8")
         self._taxonomy = _taxonomy_excerpt(config.paths.taxonomy.read_text(encoding="utf-8"))
         self._budget = config.classify_token_budget
+        self._draft = (skills / "draft" / "SKILL.md").read_text(encoding="utf-8")
+        self._per_category = skills / "draft" / "per_category"
 
     def _system(self, exemplar_blocks: list[str]) -> str:
         parts = [self._global, self._task, "## Taxonomy\n" + self._taxonomy]
@@ -114,4 +116,27 @@ class PromptAssembler:
             user=user,
             exemplar_ids=[t.ticket_id for t in used],
             truncated=truncated,
+        )
+
+    def _category_guidance(self, category: Category) -> str:
+        path = self._per_category / f"{category.value}.md"
+        return path.read_text(encoding="utf-8") if path.exists() else ""
+
+    def drafting_prompt(
+        self, ticket: Ticket, category: Category, *, feedback: str | None = None
+    ) -> AssembledPrompt:
+        """Assemble the drafting prompt: globals, draft rules, category guidance, ticket.
+
+        ``feedback`` names a prior draft's guardrail violation for the one regeneration.
+        """
+        parts = [self._global, self._draft]
+        guidance = self._category_guidance(category)
+        if guidance:
+            parts.append("## Category guidance\n" + guidance)
+
+        user = _ticket_block(ticket)
+        if feedback:
+            user += f"\n\nYour previous draft was rejected: {feedback}\nWrite a corrected reply."
+        return AssembledPrompt(
+            system="\n\n".join(parts), user=user, exemplar_ids=[], truncated=False
         )

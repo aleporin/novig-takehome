@@ -22,6 +22,25 @@ def test_no_temp_file_left_after_set(tmp_path) -> None:
     assert not list(tmp_path.glob("*.tmp"))
 
 
+def test_set_does_not_write_when_validator_raises(tmp_path) -> None:
+    import pytest
+
+    cache = ResponseCache(tmp_path)
+
+    def reject(_payload):
+        raise ValueError("malformed")
+
+    with pytest.raises(ValueError):
+        cache.set("k", {"text": "bad"}, validator=reject)
+    assert cache.get("k") is None  # nothing was cached
+
+
+def test_set_writes_when_validator_passes(tmp_path) -> None:
+    cache = ResponseCache(tmp_path)
+    cache.set("k", {"text": "ok"}, validator=lambda p: None)
+    assert cache.get("k") == {"text": "ok"}
+
+
 def test_cache_key_is_stable_and_content_addressed() -> None:
     a = LLMRequest(model="m", system="s", prompt="p")
     b = LLMRequest(model="m", system="s", prompt="p")

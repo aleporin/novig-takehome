@@ -7,10 +7,12 @@ results/. Makes real API calls; every call is disk-cached, so reruns are free.
 
 from __future__ import annotations
 
+import logging
+
 from triage.config import Config
 from triage.context.exemplars import is_exemplar
 from triage.factory import build_client, build_context
-from triage.logging_setup import report_logger
+from triage.logging_setup import report_logger, setup_logging
 from triage.routing.cost_tracker import build_cost_report
 
 from .dataset import load_tickets
@@ -31,6 +33,7 @@ from .report import render_summary, write_report
 
 def main() -> None:
     config = Config()
+    setup_logging(console_level=logging.WARNING)
     log = report_logger()
     client = build_client(config)
     assembler, pool = build_context(config)

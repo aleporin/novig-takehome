@@ -10,14 +10,16 @@
     }
   },
   "cost": {
-    "n_calls": 45,
-    "total_cost_usd": 0.411522,
+    "n_calls": 93,
+    "total_cost_usd": 0.518703,
     "cost_by_tier": {
       "T1": 0.14099399999999998,
+      "draft": 0.072093,
+      "audit": 0.035087999999999994,
       "T2": 0.27052800000000005
     },
     "p50_latency_ms": 0.0,
-    "p95_latency_ms": 2827.7541670249775,
-    "cache_hit_rate": 0.9111111111111111
+    "p95_latency_ms": 0.0,
+    "cache_hit_rate": 1.0
   }
 }
