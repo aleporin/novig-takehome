@@ -22,6 +22,10 @@ HAIKU = "claude-haiku-4-5-20251001"
 SONNET = "claude-sonnet-5"
 OPUS = "claude-opus-4-8"  # reserved; not used yet
 
+# The judge is a cross-provider (GPT-class) model — the only non-Anthropic model in
+# the system, used in evals only. Pinned like the others; swap here if needed.
+OPENAI_JUDGE = "gpt-5"
+
 # Models that reject the temperature parameter (deprecated on newer models). We omit
 # it for them, so their output is byte-reproducible via the disk cache, not via
 # temperature-0. Applies to T2 (Sonnet); T1 (Haiku) still runs at temperature 0.
@@ -36,11 +40,12 @@ class Pricing:
     output_per_mtok: float
 
 
-# Check these against the pricing page before quoting cost numbers.
+# Check these against the provider pricing pages before quoting cost numbers.
 MODEL_PRICING: dict[str, Pricing] = {
     HAIKU: Pricing(1.00, 5.00),
     SONNET: Pricing(3.00, 15.00),
     OPUS: Pricing(5.00, 25.00),
+    OPENAI_JUDGE: Pricing(1.25, 10.00),  # OpenAI judge (eval-only); approximate
 }
 
 
@@ -69,7 +74,10 @@ class Config:
     # Which model each tier uses.
     model_t1: str = HAIKU
     model_t2: str = SONNET
-    model_judge: str = SONNET  # use a different model from the drafter when possible
+    model_judge: str = OPENAI_JUDGE  # cross-provider; eval-only; optional key
+
+    # Draft length bound (characters) enforced by the output guardrail.
+    draft_max_chars: int = 1600
 
     # T1 escalates to T2 below this confidence. Frozen at 0.90 from a measured
     # threshold sweep: it fixes the classifier's 'other' category traps (82%->95%).
@@ -114,3 +122,15 @@ def load_api_key(env_path: Path | None = None) -> str:
             "and add your key, or export it in the environment."
         )
     return key
+
+
+def load_openai_key(env_path: Path | None = None) -> str | None:
+    """Read OPENAI_API_KEY for the judge. Optional: returns None if absent.
+
+    The judge is the only thing that needs it, and it degrades gracefully — a
+    missing key makes judge metrics report 'skipped', never an error.
+    """
+    from dotenv import load_dotenv
+
+    load_dotenv(env_path or (PROJECT_ROOT / "secrets.env"))
+    return os.environ.get("OPENAI_API_KEY")
