@@ -65,6 +65,9 @@ confidence-dist:
 threshold-sweep:
 	$(PYTHON) -m evals.threshold_sweep
 
+judge:
+	$(PYTHON) -m evals.run_judge
+
 predict:
 	@$(PYTHON) -m evals.predict "$(TICKET)"
 
