@@ -1,0 +1,72 @@
+{
+  "n": 30,
+  "category_accuracy": {
+    "point": 0.2,
+    "ci_low": 0.06666666666666667,
+    "ci_high": 0.3333333333333333
+  },
+  "urgency_accuracy": {
+    "point": 0.4,
+    "ci_low": 0.23333333333333334,
+    "ci_high": 0.5666666666666667
+  },
+  "severity_weighted_error": {
+    "point": 2.8,
+    "ci_low": 1.7333333333333334,
+    "ci_high": 3.933333333333333
+  },
+  "urgency_confusion": {
+    "low": {
+      "low": 12,
+      "medium": 0,
+      "high": 0,
+      "escalate_immediately": 0
+    },
+    "medium": {
+      "low": 6,
+      "medium": 0,
+      "high": 0,
+      "escalate_immediately": 0
+    },
+    "high": {
+      "low": 6,
+      "medium": 0,
+      "high": 0,
+      "escalate_immediately": 0
+    },
+    "escalate_immediately": {
+      "low": 6,
+      "medium": 0,
+      "high": 0,
+      "escalate_immediately": 0
+    }
+  },
+  "false_draft_hard": {
+    "numerator": 0,
+    "denominator": 8,
+    "estimate": {
+      "point": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
+  },
+  "false_draft_soft": {
+    "numerator": 0,
+    "denominator": 1,
+    "estimate": {
+      "point": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0
+    }
+  },
+  "false_decline": {
+    "numerator": 21,
+    "denominator": 21,
+    "estimate": {
+      "point": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0
+    }
+  },
+  "flag_notes": []
+}
