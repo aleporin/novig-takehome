@@ -1,8 +1,8 @@
 # Support Triage — Writeup
 
 ## Approach
-A linear pipeline of pure, independently-testable stages:
-`prescreen → classify (routed) → gate → soft policy → draft → output guard → emit`,
+A linear pipeline of pure, testable stages:
+`prescreen → classify → gate → soft policy → draft → output guard → emit`,
 behind one interface: `predict(ticket) -> Prediction`. Two commitments shaped everything:
 
 - **Safety is enforcement, not detection.** *Enforcement* is unconditional: no ticket
@@ -16,11 +16,9 @@ behind one interface: `predict(ticket) -> Prediction`. Two commitments shaped ev
   (`results/` holds the committed run history: baseline → classifier → cascade → tuned).
   Runs are byte-reproducible via a validate-before-cache disk cache.
 
-**Key decisions:** Haiku→Sonnet confidence cascade (escalation can only *add* flags / keep a
-sensitive category, never downgrade — proven by property test); a cross-provider (OpenAI)
-judge for draft quality, eval-only, key-optional, and demoted unless it catches every seeded
-canary; **no RAG** (no knowledge base was provided — the drafter deliberately declines to
-invent product facts rather than hallucinate them).
+**Key decisions:** a Haiku→Sonnet cascade (escalation only *adds* protection, never downgrades —
+property-tested); a cross-provider (OpenAI) judge, eval-only, demoted unless it catches every
+seeded canary; **no RAG** (none provided — the drafter declines to invent facts).
 
 ## What the evals showed
 Validation pool, n=22 (exemplars excluded); 95% bootstrap CIs:
@@ -36,51 +34,41 @@ Validation pool, n=22 (exemplars excluded); 95% bootstrap CIs:
 | judge canary calibration | 3 / 3 caught → trustworthy |
 
 Cost ≈ $0.50 (Anthropic, cached) + ~$0.22 (judge). \* 100% is **threshold-optimized on
-validation**, not a held-out estimate — the eval set is unlabeled. Unlabeled signal there:
-escalation drifts 33%→47%, draft-rate 70%→53%, confidence floor 0.75→0.60 — the eval set is
-measurably more sensitive/urgent than train, which the system reflects.
+validation**, not held-out — the eval set is unlabeled. Unlabeled eval signal: escalation drifts
+33%→47%, draft-rate 70%→53%, confidence floor 0.75→0.60 — eval is more sensitive than train,
+which the system reflects.
 
 ## Where it fails (with IDs)
 - **Fail-closed declines — `t_train_004`, `t_train_019` (2/17).** The only false-declines are the
-  output guard downgrading a draft rather than letting it assert a product fact it can't verify (a
-  settlement window, an in-app export path, a 1099 rule). The count is non-deterministic (0–2 across
-  runs — the regen runs on temperature-free Sonnet); this pinned run is 2. The deterministic gate
-  never false-declines. (`t_train_028`, an earlier example, is now fixed and drafts cleanly.)
-- **Guardrail arc (closed).** Three false-negatives slipped past the LLM audit — `t_train_022`
-  (invented "commission-on-fill" fee), `t_eval_008` ("price-time priority" stated as Novig's rule),
-  and a later round on `t_eval_012`/`t_eval_002` (asserting a withdrawal minimum / an order-type fee
-  difference). Fix: an audit criterion enforcing the drafter's facts-list — flag any fee, minimum,
-  limit, timeline, or platform rule not present in the ticket or the list. Proven by canaries in **both
-  directions**: 3/3 violations caught (including a seeded "fee for expedited review" draft) and 1/1
-  clean draft mirroring a user-quoted fact passed. Residual characteristic: the audit over-flags
-  routing/escalation language ("routed to security for identity verification") — kept deliberately (an
-  exemption would be exploitable) and absorbed by the regenerate-once-then-fail-closed path.
-- **`t_train_011`, `t_train_016`** — high-confidence urgency over-calls that no escalation
-  threshold reaches. The cascade fixes category, not urgency.
-- **Draft quality — one gap, two symptoms.** The judge flags 8 drafts as inconsistent with the gold
-  notes; **~5 are the system correctly deferring on a product fact no knowledge base verifies** (fee
-  policy, 1099 threshold, whether a P&L filter exists), and the other three are our deliberate
-  no-specific-time-promise policy versus the gold's "commit within X hours" (2) plus one omission.
-  This is the *same* gap as the fail-closed declines above: when the gold assumes a product fact we
-  cannot verify, the system either defers (the judge flags it) or fails closed (a decline). Retrieval
-  is the single fix for both — which is why it is next-week item #1.
+  guard downgrading a draft rather than assert an unverifiable product fact (settlement window, 1099
+  rule). Non-deterministic (0–2 across runs — regen runs on temperature-free Sonnet); this pinned run
+  is 2. The deterministic gate never false-declines. (`t_train_028`, an earlier example, is now fixed.)
+- **Guardrail arc (closed).** The draft audit missed three invented-fact drafts (`t_train_022`,
+  `t_eval_008`, the `t_eval_012`/`t_eval_002` class); fixed with a facts-list audit criterion, proven
+  by canaries in both directions (3/3 violations caught, 1/1 clean user-quote passed). Residual: it
+  over-flags routing language — deliberately kept, absorbed by the fail-closed regen path.
+- **`t_train_011`, `t_train_016`** — high-confidence urgency over-calls no escalation threshold
+  reaches. The cascade fixes category, not urgency.
+- **Draft quality — one gap, two symptoms.** The judge flags 8 drafts as gold-inconsistent; ~5 are
+  the system correctly deferring on a product fact no KB verifies (fee policy, 1099 threshold, a
+  P&L-filter feature), the rest our no-specific-time-promise policy vs the gold's "within X hours"
+  (2) plus one omission. Same gap as the declines above — the system defers (judge flags it) or
+  fails closed (a decline) — so retrieval fixes both, hence next-week #1.
 
 ## Next week
-1. **Real KB/RAG retrieval** — the single biggest lever; most draft gaps are missing product
-   facts, not reasoning. 2. Multi-judge panel (single-judge variance is large). 3. Grow the audit's
-   static facts-list into real retrieval; threshold auto-tuning; ingestion adapters (webhook/email).
+1. **Real KB/RAG retrieval** — the biggest lever (most draft gaps are missing product facts).
+2. Multi-judge panel (single-judge variance). 3. Threshold auto-tuning; ingestion adapters.
 
 ## Notes
-- **Confidence** = "probability a support lead reviewing this would not overturn the decision."
-  Hard-rule no-drafts are 1.0; cross-tier disagreement caps it.
-- **Determinism / reproducibility:** T1 (Haiku) runs at temperature 0; T2 (Sonnet) takes no
-  temperature, so Sonnet-drafted tickets are reproducible only via the response cache. That cache
-  is committed, so `make eval` on a fresh clone byte-reproduces `predictions.jsonl` with no API key
-  (the key is needed only on a cache miss). Both models are version-pinned.
-- **Flag annotations:** the exemplar tickets' risk flags are hand-annotated (the data has no gold
-  flags), so flag-alignment metrics inherit annotator judgment.
+- **Confidence** = probability a support lead would not overturn the decision (hard-rule no-drafts
+  1.0; cross-tier disagreement caps it).
+- **Reproducibility:** Haiku is temperature 0; Sonnet takes none, so its drafts reproduce only via
+  the committed cache — `make eval` byte-reproduces `predictions.jsonl` on a fresh clone, no key.
+  Both models pinned.
+- **Flag annotations:** the exemplar risk flags are hand-annotated (the data has no gold flags), so
+  flag-alignment metrics inherit annotator judgment.
 - **Category accuracy understates safety:** `t_train_012` was miscategorized yet still correctly
-  declined via its risk flag — the decoupled flags-vs-category design working as intended.
+  declined via its risk flag — decoupled flags-vs-category working.
 - **Scope/time:** this is past the suggested few-hour budget — a deliberate over-investment in
   eval rigor and sensitive-case handling (the two behaviors weighted highest here) rather than
   breadth. The trade I'd defend; the hours I'd own.
