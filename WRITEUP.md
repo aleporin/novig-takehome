@@ -62,8 +62,9 @@ cautious in response.
   fail-closed regen path absorbs the cost.
 - **`t_train_011`, `t_train_016`:** high-confidence urgency over-calls that no escalation
   threshold reaches. The cascade fixes category, not urgency.
-- **Draft quality: one gap, two symptoms.** The judge flags 8 drafts as inconsistent with the
-  gold notes: ~5 are the system correctly deferring on product facts no knowledge base
+- **Draft quality: one gap, two symptoms.** The judges flag 8&ndash;13 drafts as inconsistent
+  with the gold notes (openai 8, gemini 9, xai 13 — xAI is the strictest reader). Of the
+  8 OpenAI flags, ~5 are the system correctly deferring on product facts no knowledge base
   verifies, 2 are a deliberate policy clash (gold commits to "within X hours"; we never
   promise timeframes), 1 is a genuine omission. The same missing-KB gap drives the
   fail-closed declines above, so retrieval fixes both. Hence next-week #1.
