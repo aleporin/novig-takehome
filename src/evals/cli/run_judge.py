@@ -9,14 +9,13 @@ from __future__ import annotations
 
 import logging
 
+from evals.batch import run_pipeline
+from evals.dataset import load_tickets
+from evals.judge import _CRITERIA, build_judge, load_rubric, run_canaries, score_draft
 from triage.config import Config
 from triage.factory import build_client, build_context
 from triage.logging_setup import report_logger, setup_logging
 from triage.routing.cost_tracker import build_cost_report
-
-from .dataset import load_tickets
-from .judge import _CRITERIA, build_judge, load_rubric, run_canaries, score_draft
-from .pipeline_run import run_pipeline
 
 
 def main() -> None:

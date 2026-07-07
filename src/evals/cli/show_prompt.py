@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import sys
 
+from evals.dataset import find_ticket
 from triage.config import Config
 from triage.context.assembler import PromptAssembler
 from triage.context.exemplars import load_exemplar_pool, select_exemplars
 from triage.logging_setup import report_logger
-
-from .dataset import find_ticket
 
 
 def main() -> None:

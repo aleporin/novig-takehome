@@ -51,25 +51,25 @@ format:
 	$(PYTHON) -m ruff check --fix --select $(RUFF_SELECT) $(RUFF_FLAGS) src tests
 
 eval:
-	$(PYTHON) -m evals.run_eval
+	$(PYTHON) -m evals.cli.run_eval
 
 train-metrics eval-train:
-	$(PYTHON) -m evals.run_train
+	$(PYTHON) -m evals.cli.run_train
 
 baseline-metrics:
-	$(PYTHON) -m evals.run_baseline
+	$(PYTHON) -m evals.cli.run_baseline
 
 confidence-dist:
-	$(PYTHON) -m evals.confidence_dist
+	$(PYTHON) -m evals.cli.confidence_dist
 
 threshold-sweep:
-	$(PYTHON) -m evals.threshold_sweep
+	$(PYTHON) -m evals.cli.threshold_sweep
 
 judge:
-	$(PYTHON) -m evals.run_judge
+	$(PYTHON) -m evals.cli.run_judge
 
 predict:
-	@$(PYTHON) -m evals.predict "$(TICKET)"
+	@$(PYTHON) -m evals.cli.predict "$(TICKET)"
 
 show-prompt:
-	@$(PYTHON) -m evals.show_prompt "$(TICKET)"
+	@$(PYTHON) -m evals.cli.show_prompt "$(TICKET)"

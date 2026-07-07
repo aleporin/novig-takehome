@@ -6,13 +6,12 @@ only, no cascade. Cached from the classifier run, so it costs nothing to rerun.
 
 from __future__ import annotations
 
+from evals.dataset import load_tickets
 from triage.config import Config
 from triage.context.exemplars import is_exemplar, select_exemplars
 from triage.factory import build_client, build_context
 from triage.logging_setup import report_logger
 from triage.stages.classify import classify
-
-from .dataset import load_tickets
 
 _THRESHOLDS = (0.75, 0.80, 0.85, 0.90, 0.95)
 

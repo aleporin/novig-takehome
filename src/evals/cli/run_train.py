@@ -9,15 +9,7 @@ from __future__ import annotations
 
 import logging
 
-from triage.config import Config
-from triage.context.exemplars import is_exemplar
-from triage.factory import build_client, build_context
-from triage.logging_setup import report_logger, setup_logging
-from triage.routing.cost_tracker import build_cost_report
-
-from .dataset import load_tickets
-from .metrics import evaluate
-from .pipeline_run import (
+from evals.batch import (
     collect_calls,
     escalation_summary,
     layer_attribution,
@@ -28,7 +20,14 @@ from .pipeline_run import (
     write_diagnostic,
     write_enriched,
 )
-from .report import render_summary, write_report
+from evals.dataset import load_tickets
+from evals.metrics import evaluate
+from evals.report import render_summary, write_report
+from triage.config import Config
+from triage.context.exemplars import is_exemplar
+from triage.factory import build_client, build_context
+from triage.logging_setup import report_logger, setup_logging
+from triage.routing.cost_tracker import build_cost_report
 
 
 def main() -> None:

@@ -9,6 +9,8 @@ ceiling of confidence-based escalation. Cached, so it is cheap to rerun.
 
 from __future__ import annotations
 
+from evals.dataset import load_tickets
+from evals.metrics import SEVERITY_COST
 from triage.config import Config
 from triage.context.exemplars import is_exemplar, select_exemplars
 from triage.factory import build_client, build_context
@@ -16,9 +18,6 @@ from triage.logging_setup import report_logger
 from triage.routing.router import resolve, should_escalate
 from triage.stages.classify import classify
 from triage.stages.prescreen import prescreen
-
-from .dataset import load_tickets
-from .metrics import SEVERITY_COST
 
 _THRESHOLDS = (0.80, 0.90)
 _LOG = report_logger()

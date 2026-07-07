@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import sys
 
+from evals.dataset import find_ticket
 from triage.config import Config
 from triage.factory import build_client, build_context
 from triage.logging_setup import report_logger
 from triage.pipeline import Enriched, predict
 from triage.schemas import RiskFlags, Ticket
-
-from .dataset import find_ticket
 
 
 def _true(flags: RiskFlags) -> list[str]:

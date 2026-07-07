@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evals.pipeline_run import layer_attribution, scored_from, unattributed_no_draft
+from evals.batch import layer_attribution, scored_from, unattributed_no_draft
 from triage.pipeline import Enriched
 from triage.schemas import (
     Category,

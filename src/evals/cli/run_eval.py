@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import logging
 
+from evals.batch import run_pipeline
+from evals.dataset import load_tickets
+from evals.validate import validate_file
 from triage.config import Config
 from triage.factory import build_client, build_context
 from triage.logging_setup import report_logger, setup_logging
-
-from .dataset import load_tickets
-from .pipeline_run import run_pipeline
-from .validate import validate_file
 
 
 def main() -> None:

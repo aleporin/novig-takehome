@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+from evals.baseline import MajorityBaseline
+from evals.dataset import load_tickets
+from evals.metrics import Scored, evaluate
+from evals.report import render_summary, write_report
+from evals.validate import validate_predictions
 from triage.config import Config
 from triage.logging_setup import report_logger
-
-from .baseline import MajorityBaseline
-from .dataset import load_tickets
-from .metrics import Scored, evaluate
-from .report import render_summary, write_report
-from .validate import validate_predictions
 
 
 def main() -> None:
