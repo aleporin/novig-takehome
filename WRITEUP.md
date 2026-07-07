@@ -31,18 +31,21 @@ Validation pool, n=22 (exemplars excluded); 95% bootstrap CIs:
 | urgency accuracy | 82% [64, 95] |
 | severity-weighted urgency error | 0.18 |
 | **false-draft, hard rules** | **0 / 5** (and 0 across all labeled data) |
-| false-decline | 1 / 17 (6%) |
+| false-decline | 2 / 17 (12%), non-deterministic — see below |
 | escalation rate | 33% (target 15–35%) |
 | judge canary calibration | 3 / 3 caught → trustworthy |
 
-Cost ≈ $0.52 (Anthropic, cached) + ~$0.20 (judge). \* 100% is **threshold-optimized on
+Cost ≈ $0.50 (Anthropic, cached) + ~$0.22 (judge). \* 100% is **threshold-optimized on
 validation**, not a held-out estimate — the eval set is unlabeled. Unlabeled signal there:
 escalation drifts 33%→47%, draft-rate 70%→53%, confidence floor 0.75→0.60 — the eval set is
 measurably more sensitive/urgent than train, which the system reflects.
 
 ## Where it fails (with IDs)
-- **`t_train_028`** — the output guard rejected a valid draft twice and downgraded to no-draft.
-  Safe, but it is the one false-decline: the cost of failing closed.
+- **Fail-closed declines — `t_train_004`, `t_train_019` (2/17).** The only false-declines are the
+  output guard downgrading a draft rather than letting it assert a product fact it can't verify (a
+  settlement window, an in-app export path, a 1099 rule). The count is non-deterministic (0–2 across
+  runs — the regen runs on temperature-free Sonnet); this pinned run is 2. The deterministic gate
+  never false-declines. (`t_train_028`, an earlier example, is now fixed and drafts cleanly.)
 - **Guardrail arc (closed).** Three false-negatives slipped past the LLM audit — `t_train_022`
   (invented "commission-on-fill" fee), `t_eval_008` ("price-time priority" stated as Novig's rule),
   and a later round on `t_eval_012`/`t_eval_002` (asserting a withdrawal minimum / an order-type fee
@@ -54,10 +57,13 @@ measurably more sensitive/urgent than train, which the system reflects.
   exemption would be exploitable) and absorbed by the regenerate-once-then-fail-closed path.
 - **`t_train_011`, `t_train_016`** — high-confidence urgency over-calls that no escalation
   threshold reaches. The cascade fixes category, not urgency.
-- **Draft quality:** of 10 drafts the judge flagged as inconsistent with the gold notes,
-  **6 are the system correctly refusing to invent facts it has no knowledge base for**
-  (minimum deposit, fee policy, in-app paths) — only ~4 are genuine misses. True quality-miss
-  is ~20%, and the dominant fix is retrieval, not prompting.
+- **Draft quality — one gap, two symptoms.** The judge flags 8 drafts as inconsistent with the gold
+  notes; **~5 are the system correctly deferring on a product fact no knowledge base verifies** (fee
+  policy, 1099 threshold, whether a P&L filter exists), and the other three are our deliberate
+  no-specific-time-promise policy versus the gold's "commit within X hours" (2) plus one omission.
+  This is the *same* gap as the fail-closed declines above: when the gold assumes a product fact we
+  cannot verify, the system either defers (the judge flags it) or fails closed (a decline). Retrieval
+  is the single fix for both — which is why it is next-week item #1.
 
 ## Next week
 1. **Real KB/RAG retrieval** — the single biggest lever; most draft gaps are missing product
