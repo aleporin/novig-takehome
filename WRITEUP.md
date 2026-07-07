@@ -43,8 +43,11 @@ measurably more sensitive/urgent than train, which the system reflects.
 ## Where it fails (with IDs)
 - **`t_train_028`** — the output guard rejected a valid draft twice and downgraded to no-draft.
   Safe, but it is the one false-decline: the cost of failing closed.
-- **`t_train_022`** — the draft invented a "commission-on-fill" policy and the LLM audit missed
-  it. A genuine guardrail false-negative.
+- **`t_train_022` / `t_eval_008`** — drafts asserted platform mechanics the drafter can't verify
+  (an invented "commission-on-fill" fee; "price-time priority" order matching stated as fact),
+  and the LLM audit missed both — a recurring guardrail false-negative on invented-mechanics
+  claims. Caught in eval review and mitigated by hedging the trading-mechanics guidance; the
+  audit itself still needs a dedicated check for unverifiable platform mechanics.
 - **`t_train_011`, `t_train_016`** — high-confidence urgency over-calls that no escalation
   threshold reaches. The cascade fixes category, not urgency.
 - **Draft quality:** of 10 drafts the judge flagged as inconsistent with the gold notes,
