@@ -28,7 +28,7 @@ OPUS = "claude-opus-4-8"  # reserved; not used yet
 # rate is itself an eval signal. Pinned like the others; swap here if needed.
 OPENAI_JUDGE = "gpt-5"
 GEMINI_JUDGE = "gemini-2.5-pro"
-XAI_JUDGE = "grok-4"
+XAI_JUDGE = "grok-3-mini"
 
 # Models that reject the temperature parameter (deprecated on newer models). We omit
 # it for them, so their output is byte-reproducible via the disk cache, not via
@@ -51,7 +51,7 @@ MODEL_PRICING: dict[str, Pricing] = {
     OPUS: Pricing(5.00, 25.00),
     OPENAI_JUDGE: Pricing(1.25, 10.00),  # OpenAI judge (eval-only); approximate
     GEMINI_JUDGE: Pricing(1.25, 10.00),  # Google judge (eval-only); approximate
-    XAI_JUDGE: Pricing(3.00, 15.00),  # xAI grok-4 (eval-only); approximate
+    XAI_JUDGE: Pricing(0.30, 0.50),  # xAI grok-3-mini (eval-only); cheap non-reasoning
 }
 
 

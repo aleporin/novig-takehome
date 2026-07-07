@@ -166,11 +166,69 @@ class OpenAIJudge:
 class XAIJudge(OpenAIJudge):
     """xAI (Grok) judge — OpenAI-compatible API at api.x.ai.
 
-    Same retry/cache/parse machinery as OpenAIJudge; only the endpoint differs.
-    Structured output via response_format is supported by the xAI API.
+    Two quirks force special handling on top of OpenAIJudge:
+
+    1. New xAI accounts throttle aggressively (5-ish RPM on grok-4). Beyond that
+       ceiling the API returns 403 "no credits" — a misleading generic error, not
+       a real balance issue. We enforce a minimum inter-call gap client-side so
+       bursts stay under the ceiling, and translate the 403 into a transient
+       exception so tenacity retries with backoff.
+    2. grok-4 emits large amounts of hidden reasoning output, so calls cost more
+       than the token math suggests. Keep max_retries higher than the OpenAI
+       judge to absorb the extra latency without giving up.
     """
 
     _base_url = "https://api.x.ai/v1"
+    _min_interval_s: float = 12.0  # ~5 requests/min ceiling with headroom
+    _last_call_at: float = 0.0  # instance-level throttle bookkeeping
+
+    def _call_with_retry(self, system: str, user: str) -> tuple[JudgeVerdict, int, int]:
+        # Longer retry budget than the OpenAI judge: xAI throttles are common and
+        # each backoff may need to hit the 12s inter-call floor.
+        retryer = retry(
+            reraise=True,
+            retry=retry_if_exception_type(TransientLLMError),
+            stop=stop_after_attempt(max(self._max_retries, 8)),
+            wait=wait_exponential(multiplier=1.0, max=30),
+        )
+        return retryer(self._invoke)(system, user)
+
+    def _invoke(self, system: str, user: str) -> tuple[JudgeVerdict, int, int]:
+        import time
+
+        import openai
+
+        gap = time.monotonic() - self._last_call_at
+        if gap < self._min_interval_s:
+            time.sleep(self._min_interval_s - gap)
+        try:
+            completion = self._openai().chat.completions.parse(
+                model=self._model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                response_format=JudgeVerdict,
+            )
+        except (
+            openai.RateLimitError,
+            openai.APITimeoutError,
+            openai.APIConnectionError,
+            openai.InternalServerError,
+            openai.PermissionDeniedError,  # xAI's throttle-as-403
+        ) as exc:
+            self._last_call_at = time.monotonic()
+            raise TransientLLMError(str(exc)) from exc
+        except openai.OpenAIError as exc:
+            self._last_call_at = time.monotonic()
+            raise LLMError(str(exc)) from exc
+        parsed = completion.choices[0].message.parsed
+        if parsed is None:
+            self._last_call_at = time.monotonic()
+            raise LLMError("xAI judge returned no parsed output")
+        usage = completion.usage
+        self._last_call_at = time.monotonic()
+        return parsed, usage.prompt_tokens, usage.completion_tokens
 
 
 class GeminiJudge:
