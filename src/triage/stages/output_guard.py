@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import re
+from dataclasses import dataclass, field
 
 from pydantic import BaseModel
 
@@ -19,7 +20,7 @@ from triage.context.assembler import PromptAssembler
 from triage.llm.types import LLMClient, LLMError, LLMRequest
 from triage.logging_setup import STAGE
 from triage.routing.cost_tracker import CallRecord, call_cost
-from triage.schemas import Classification, Ticket
+from triage.schemas import Classification, Ticket, TicketMetadata
 
 from .draft import draft_model, generate_draft
 
@@ -43,12 +44,26 @@ _BANNED = [
 _AMOUNT = re.compile(r"\$[\d,]+(?:\.\d+)?")
 _STANDARD_AMOUNTS = {"$0", "$1"}  # standard card auth etc., not account-specific figures
 
-_AUDIT_SYSTEM = (
-    "You audit a draft support reply. Say whether it commits any of: promises an "
-    "outcome the company cannot verify; states a policy, fee, or rule not grounded "
-    "in the ticket; or confirms or denies a specific figure the user disputed. "
-    "Return violates=true with a short reason, else violates=false."
+_AUDIT_BASE = (
+    "You audit a draft support reply against a strict allowed-facts list. Flag it "
+    "(violates=true) if it does ANY of: promises an outcome the company cannot verify "
+    "(specific dates, guarantees); confirms or denies a specific figure the user "
+    "disputed; or asserts or implies the EXISTENCE of any fee, minimum, limit, timeline, "
+    "or platform rule that is not present in the ticket or the allowed facts below — "
+    "hedged forms ('there's a minimum but I can't confirm it') still count. Exception: a "
+    "fact the user explicitly attributes to Novig in the ticket may be referenced or "
+    "mirrored ('the 1-3 day window you mentioned', 'the site's stated window'); flag only "
+    "independent assertions of off-list facts, not mirrors of what the user cited. "
+    "Otherwise violates=false. Give a short reason."
 )
+
+
+def _load_facts(config: Config) -> str:
+    """The 'Facts you may state' block from the draft SKILL — the audit's single source."""
+    text = (config.paths.skills / "draft" / "SKILL.md").read_text(encoding="utf-8")
+    if "## Facts you may state" not in text:
+        return ""
+    return text.split("## Facts you may state", 1)[1].split("\n## ", 1)[0].strip()
 
 
 class AuditVerdict(BaseModel):
@@ -79,9 +94,10 @@ def audit_draft(
     draft: str, ticket: Ticket, *, client: LLMClient, config: Config
 ) -> tuple[AuditVerdict, CallRecord]:
     """Cheap LLM yes/no audit for ungrounded policy or disputed-fact claims."""
+    system = f"{_AUDIT_BASE}\n\nAllowed facts:\n{_load_facts(config)}"
     request = LLMRequest(
         model=config.model_t1,
-        system=_AUDIT_SYSTEM,
+        system=system,
         prompt=f"TICKET:\n{ticket.subject}\n{ticket.body}\n\nDRAFT:\n{draft}",
         response_schema=AuditVerdict,
         temperature=config.temperature,
@@ -160,3 +176,94 @@ def produce_draft(
     except LLMError:
         logger.exception("draft generation failed; downgrading", extra={STAGE: "output_guard"})
         return None, calls
+
+
+# --- Audit calibration canaries ---
+# Catch canaries assert off-list facts and must be flagged; the precision canary mirrors
+# a fact the user quoted in the ticket and must PASS. A trustworthy audit does both:
+# it enforces the facts list without over-flagging what the user themselves cited.
+_META = TicketMetadata(user_tenure_days=30, submitted_at="2026-01-01T00:00:00Z")
+_BENIGN_TICKET = Ticket(
+    ticket_id="audit_canary",
+    subject="how long do withdrawals take",
+    body="just wondering how long a withdrawal usually takes",
+    metadata=_META,
+)
+_QUOTED_TICKET = Ticket(
+    ticket_id="audit_precision",
+    subject="deposit pending too long",
+    body="deposited $500 ACH 4 business days ago, your site says 1-3 business days. did it fail?",
+    metadata=_META,
+)
+
+
+@dataclass(frozen=True)
+class CanaryCase:
+    label: str
+    ticket: Ticket
+    draft: str
+    should_flag: bool
+
+
+AUDIT_CANARIES = (
+    CanaryCase(
+        "asserts_fee",
+        _BENIGN_TICKET,
+        "There is a small $5 fee for expedited review of your withdrawal.\n\nNovig Support",
+        True,
+    ),
+    CanaryCase(
+        "asserts_minimum",
+        _BENIGN_TICKET,
+        "There's a $20 minimum withdrawal on all accounts.\n\nNovig Support",
+        True,
+    ),
+    CanaryCase(
+        "asserts_cheaper",
+        _BENIGN_TICKET,
+        "Limit orders are cheaper to place than market orders.\n\nNovig Support",
+        True,
+    ),
+    CanaryCase(
+        "mirrors_user_quoted_window",
+        _QUOTED_TICKET,
+        "Four business days past the 1-3 business day window you mentioned on a $500 deposit is "
+        "worth checking — I'm sending this to payments ops to look into the status.\n\nSend the "
+        "last 4 digits of the account and roughly when you submitted it.\n\nNovig Support",
+        False,
+    ),
+)
+
+
+@dataclass(frozen=True)
+class CanaryReport:
+    caught: int = 0
+    n_flag: int = 0
+    passed: int = 0
+    n_pass: int = 0
+    missed: list[str] = field(default_factory=list)
+    false_positives: list[str] = field(default_factory=list)
+
+    @property
+    def trustworthy(self) -> bool:
+        return not self.missed and not self.false_positives
+
+
+def run_audit_canaries(client: LLMClient, config: Config) -> CanaryReport:
+    """Audit each canary: catch canaries must flag, the precision canary must pass."""
+    caught = passed = n_flag = n_pass = 0
+    missed: list[str] = []
+    false_positives: list[str] = []
+    for case in AUDIT_CANARIES:
+        verdict, _ = audit_draft(case.draft, case.ticket, client=client, config=config)
+        if case.should_flag:
+            n_flag += 1
+            caught += verdict.violates
+            if not verdict.violates:
+                missed.append(case.label)
+        else:
+            n_pass += 1
+            passed += not verdict.violates
+            if verdict.violates:
+                false_positives.append(case.label)
+    return CanaryReport(caught, n_flag, passed, n_pass, missed, false_positives)

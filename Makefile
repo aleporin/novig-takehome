@@ -68,6 +68,9 @@ threshold-sweep:
 judge:
 	$(PYTHON) -m evals.cli.run_judge
 
+audit-canaries:
+	$(PYTHON) -m evals.cli.audit_canaries
+
 predict:
 	@$(PYTHON) -m evals.cli.predict "$(TICKET)"
 
