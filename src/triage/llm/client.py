@@ -29,13 +29,22 @@ logger = logging.getLogger(__name__)
 Transport = Callable[[dict[str, Any]], Any]
 
 
-def _default_transport(api_key: str, timeout_s: float) -> Transport:
-    """Build a transport that calls the Anthropic SDK and maps its errors to ours."""
+def _default_transport(api_key: str | None, timeout_s: float) -> Transport:
+    """Build a transport that calls the Anthropic SDK and maps its errors to ours.
+
+    The SDK client is built lazily on the first live call, so a fully cached run
+    needs no key; a cache miss with no key raises where the call is actually made.
+    """
     import anthropic
 
-    client = anthropic.Anthropic(api_key=api_key, timeout=timeout_s)
+    holder: dict[str, Any] = {}
 
     def _call(params: dict[str, Any]) -> Any:
+        client = holder.get("client")
+        if client is None:
+            if not api_key:
+                raise LLMError("ANTHROPIC_API_KEY is required for a live (cache-miss) call")
+            client = holder["client"] = anthropic.Anthropic(api_key=api_key, timeout=timeout_s)
         try:
             return client.messages.create(**params)
         except (
