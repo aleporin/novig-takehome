@@ -64,7 +64,12 @@ measurably more sensitive/urgent than train, which the system reflects.
 - **Confidence** = "probability a support lead reviewing this would not overturn the decision."
   Hard-rule no-drafts are 1.0; cross-tier disagreement caps it.
 - **Determinism:** T1 (Haiku) runs at temperature 0; T2 (Sonnet) rejects the temperature param,
-  so it is byte-reproducible via the cache, not via temp-0. Both models are version-pinned.
+  so Sonnet-drafted tickets (money-in-motion / high-urgency) are byte-reproducible only via the
+  response cache — a cache-less fresh run may reword them (decisions are unaffected). Both models
+  are version-pinned; `predictions.jsonl` is the cached canonical run.
+- **Known issue:** some drafts open with "Novig Support here —" and also sign off "Novig Support"
+  (e.g. `t_eval_007`) — a cosmetic doubled brand mention. A fix belongs in the global drafting
+  rule (which regenerates every draft), so it is deferred rather than hand-edited.
 - **Scope/time:** this is past the suggested few-hour budget — a deliberate over-investment in
   eval rigor and sensitive-case handling (the two behaviors weighted highest here) rather than
   breadth. The trade I'd defend; the hours I'd own.
