@@ -12,16 +12,18 @@ classifier and iterated against, so the numbers here are measured, not asserted.
 
 ```sh
 git clone https://github.com/aleporin/novig-takehome.git && cd novig-takehome
-make install       # pinned deps into your env
-make eval          # run the pipeline over the eval set -> predictions.jsonl
-make test          # 860 offline tests, no API key
+pip install -r requirements.txt   # or: make install
+
+python eval.py                    # eval set -> predictions.jsonl (any OS, no make, no key)
+python -m pytest -m "not live"    # 860 offline tests, no API key (or: make test)
 ```
 
-`make eval` reproduces `predictions.jsonl` **byte-for-byte with no API keys** — every
-model response is in the committed cache (`.cache/`), and the client only reaches for a
-key on a cache miss. To regenerate against new tickets, add keys:
-`cp secrets.env.example secrets.env` and set `ANTHROPIC_API_KEY` (`OPENAI_API_KEY` is
-optional, for the eval judge only).
+`python eval.py` (equivalently `make eval`) reproduces `predictions.jsonl` **byte-for-byte
+with no API keys** — every model response is in the committed cache (`.cache/`), and the
+client only reaches for a key on a cache miss. `make` targets are convenience wrappers for
+Mac/Linux; on Windows use the `python …` commands directly. To regenerate against new
+tickets, add keys: `cp secrets.env.example secrets.env` and set `ANTHROPIC_API_KEY`
+(`OPENAI_API_KEY` optional, eval judge only).
 
 ## Repo map
 
