@@ -43,11 +43,15 @@ measurably more sensitive/urgent than train, which the system reflects.
 ## Where it fails (with IDs)
 - **`t_train_028`** — the output guard rejected a valid draft twice and downgraded to no-draft.
   Safe, but it is the one false-decline: the cost of failing closed.
-- **`t_train_022` / `t_eval_008`** — drafts asserted platform mechanics the drafter can't verify
-  (an invented "commission-on-fill" fee; "price-time priority" order matching stated as fact),
-  and the LLM audit missed both — a recurring guardrail false-negative on invented-mechanics
-  claims. Caught in eval review and mitigated by hedging the trading-mechanics guidance; the
-  audit itself still needs a dedicated check for unverifiable platform mechanics.
+- **Guardrail arc (closed).** Three false-negatives slipped past the LLM audit — `t_train_022`
+  (invented "commission-on-fill" fee), `t_eval_008` ("price-time priority" stated as Novig's rule),
+  and a later round on `t_eval_012`/`t_eval_002` (asserting a withdrawal minimum / an order-type fee
+  difference). Fix: an audit criterion enforcing the drafter's facts-list — flag any fee, minimum,
+  limit, timeline, or platform rule not present in the ticket or the list. Proven by canaries in **both
+  directions**: 3/3 violations caught (including a seeded "fee for expedited review" draft) and 1/1
+  clean draft mirroring a user-quoted fact passed. Residual characteristic: the audit over-flags
+  routing/escalation language ("routed to security for identity verification") — kept deliberately (an
+  exemption would be exploitable) and absorbed by the regenerate-once-then-fail-closed path.
 - **`t_train_011`, `t_train_016`** — high-confidence urgency over-calls that no escalation
   threshold reaches. The cascade fixes category, not urgency.
 - **Draft quality:** of 10 drafts the judge flagged as inconsistent with the gold notes,
@@ -57,8 +61,8 @@ measurably more sensitive/urgent than train, which the system reflects.
 
 ## Next week
 1. **Real KB/RAG retrieval** — the single biggest lever; most draft gaps are missing product
-   facts, not reasoning. 2. Multi-judge panel (single-judge variance is large). 3. Close the
-   audit gap behind `t_train_022`; threshold auto-tuning; ingestion adapters (webhook/email).
+   facts, not reasoning. 2. Multi-judge panel (single-judge variance is large). 3. Grow the audit's
+   static facts-list into real retrieval; threshold auto-tuning; ingestion adapters (webhook/email).
 
 ## Notes
 - **Confidence** = "probability a support lead reviewing this would not overturn the decision."
@@ -67,9 +71,10 @@ measurably more sensitive/urgent than train, which the system reflects.
   so Sonnet-drafted tickets (money-in-motion / high-urgency) are byte-reproducible only via the
   response cache — a cache-less fresh run may reword them (decisions are unaffected). Both models
   are version-pinned; `predictions.jsonl` is the cached canonical run.
-- **Known issue:** some drafts open with "Novig Support here —" and also sign off "Novig Support"
-  (e.g. `t_eval_007`) — a cosmetic doubled brand mention. A fix belongs in the global drafting
-  rule (which regenerates every draft), so it is deferred rather than hand-edited.
+- **Flag annotations:** the exemplar tickets' risk flags are hand-annotated (the data has no gold
+  flags), so flag-alignment metrics inherit annotator judgment.
+- **Category accuracy understates safety:** `t_train_012` was miscategorized yet still correctly
+  declined via its risk flag — the decoupled flags-vs-category design working as intended.
 - **Scope/time:** this is past the suggested few-hour budget — a deliberate over-investment in
   eval rigor and sensitive-case handling (the two behaviors weighted highest here) rather than
   breadth. The trade I'd defend; the hours I'd own.
