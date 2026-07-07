@@ -1,0 +1,940 @@
+{
+  "judges": [
+    {
+      "label": "openai",
+      "model": "gpt-5"
+    },
+    {
+      "label": "gemini",
+      "model": "gemini-2.5-pro"
+    },
+    {
+      "label": "xai",
+      "model": "grok-3-mini"
+    }
+  ],
+  "per_judge": [
+    {
+      "label": "openai",
+      "scored": 19,
+      "passed": 6,
+      "per_criterion": {
+        "acknowledges_specifics": 15,
+        "no_unverifiable_promise": 13,
+        "states_next_steps": 17,
+        "invents_no_policy": 17,
+        "consistent_with_gold": 11,
+        "within_length": 18
+      }
+    },
+    {
+      "label": "gemini",
+      "scored": 19,
+      "passed": 7,
+      "per_criterion": {
+        "acknowledges_specifics": 17,
+        "no_unverifiable_promise": 18,
+        "states_next_steps": 18,
+        "invents_no_policy": 18,
+        "consistent_with_gold": 10,
+        "within_length": 16
+      }
+    },
+    {
+      "label": "xai",
+      "scored": 19,
+      "passed": 4,
+      "per_criterion": {
+        "acknowledges_specifics": 15,
+        "no_unverifiable_promise": 15,
+        "states_next_steps": 17,
+        "invents_no_policy": 18,
+        "consistent_with_gold": 6,
+        "within_length": 17
+      }
+    }
+  ],
+  "per_judge_cost": [
+    {
+      "label": "openai",
+      "n_calls": 22,
+      "total_cost_usd": 0.22583875,
+      "cache_hit_rate": 1.0
+    },
+    {
+      "label": "gemini",
+      "n_calls": 22,
+      "total_cost_usd": 0.033995,
+      "cache_hit_rate": 1.0
+    },
+    {
+      "label": "xai",
+      "n_calls": 22,
+      "total_cost_usd": 0.0055209,
+      "cache_hit_rate": 0.8181818181818182
+    }
+  ],
+  "pairwise_agreement": [
+    {
+      "n_common": 19,
+      "overall_agreement": 0.8421052631578947,
+      "overall_matches": 16,
+      "per_criterion_agreement": {
+        "acknowledges_specifics": 0.8947368421052632,
+        "no_unverifiable_promise": 0.7368421052631579,
+        "states_next_steps": 0.9473684210526315,
+        "invents_no_policy": 0.9473684210526315,
+        "consistent_with_gold": 0.7368421052631579,
+        "within_length": 0.8947368421052632
+      },
+      "disagreements": [
+        {
+          "ticket_id": "t_train_008",
+          "a_passed": false,
+          "b_passed": true
+        },
+        {
+          "ticket_id": "t_train_016",
+          "a_passed": true,
+          "b_passed": false
+        },
+        {
+          "ticket_id": "t_train_030",
+          "a_passed": false,
+          "b_passed": true
+        }
+      ],
+      "judges": [
+        "openai",
+        "gemini"
+      ]
+    },
+    {
+      "n_common": 19,
+      "overall_agreement": 0.7894736842105263,
+      "overall_matches": 15,
+      "per_criterion_agreement": {
+        "acknowledges_specifics": 0.8947368421052632,
+        "no_unverifiable_promise": 0.7894736842105263,
+        "states_next_steps": 1.0,
+        "invents_no_policy": 0.9473684210526315,
+        "consistent_with_gold": 0.7368421052631579,
+        "within_length": 0.9473684210526315
+      },
+      "disagreements": [
+        {
+          "ticket_id": "t_train_013",
+          "a_passed": false,
+          "b_passed": true
+        },
+        {
+          "ticket_id": "t_train_016",
+          "a_passed": true,
+          "b_passed": false
+        },
+        {
+          "ticket_id": "t_train_018",
+          "a_passed": true,
+          "b_passed": false
+        },
+        {
+          "ticket_id": "t_train_028",
+          "a_passed": true,
+          "b_passed": false
+        }
+      ],
+      "judges": [
+        "openai",
+        "xai"
+      ]
+    },
+    {
+      "n_common": 19,
+      "overall_agreement": 0.7368421052631579,
+      "overall_matches": 14,
+      "per_criterion_agreement": {
+        "acknowledges_specifics": 0.8947368421052632,
+        "no_unverifiable_promise": 0.8421052631578947,
+        "states_next_steps": 0.9473684210526315,
+        "invents_no_policy": 1.0,
+        "consistent_with_gold": 0.7894736842105263,
+        "within_length": 0.9473684210526315
+      },
+      "disagreements": [
+        {
+          "ticket_id": "t_train_008",
+          "a_passed": true,
+          "b_passed": false
+        },
+        {
+          "ticket_id": "t_train_013",
+          "a_passed": false,
+          "b_passed": true
+        },
+        {
+          "ticket_id": "t_train_018",
+          "a_passed": true,
+          "b_passed": false
+        },
+        {
+          "ticket_id": "t_train_028",
+          "a_passed": true,
+          "b_passed": false
+        },
+        {
+          "ticket_id": "t_train_030",
+          "a_passed": true,
+          "b_passed": false
+        }
+      ],
+      "judges": [
+        "gemini",
+        "xai"
+      ]
+    }
+  ],
+  "majority": {
+    "judges": [
+      "openai",
+      "gemini",
+      "xai"
+    ],
+    "n_common": 19,
+    "panel_pass_rate": 0.2631578947368421,
+    "panel_passed": 5,
+    "unanimous": 13,
+    "split": 6,
+    "per_ticket": [
+      {
+        "ticket_id": "t_train_001",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_002",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_005",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_007",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_008",
+        "votes": {
+          "openai": false,
+          "gemini": true,
+          "xai": false
+        },
+        "yes": 1,
+        "no": 2,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_010",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_011",
+        "votes": {
+          "openai": true,
+          "gemini": true,
+          "xai": true
+        },
+        "yes": 3,
+        "no": 0,
+        "panel_passed": true
+      },
+      {
+        "ticket_id": "t_train_013",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": true
+        },
+        "yes": 1,
+        "no": 2,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_014",
+        "votes": {
+          "openai": true,
+          "gemini": true,
+          "xai": true
+        },
+        "yes": 3,
+        "no": 0,
+        "panel_passed": true
+      },
+      {
+        "ticket_id": "t_train_015",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_016",
+        "votes": {
+          "openai": true,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 1,
+        "no": 2,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_018",
+        "votes": {
+          "openai": true,
+          "gemini": true,
+          "xai": false
+        },
+        "yes": 2,
+        "no": 1,
+        "panel_passed": true
+      },
+      {
+        "ticket_id": "t_train_021",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_022",
+        "votes": {
+          "openai": true,
+          "gemini": true,
+          "xai": true
+        },
+        "yes": 3,
+        "no": 0,
+        "panel_passed": true
+      },
+      {
+        "ticket_id": "t_train_025",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_026",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_027",
+        "votes": {
+          "openai": false,
+          "gemini": false,
+          "xai": false
+        },
+        "yes": 0,
+        "no": 3,
+        "panel_passed": false
+      },
+      {
+        "ticket_id": "t_train_028",
+        "votes": {
+          "openai": true,
+          "gemini": true,
+          "xai": false
+        },
+        "yes": 2,
+        "no": 1,
+        "panel_passed": true
+      },
+      {
+        "ticket_id": "t_train_030",
+        "votes": {
+          "openai": false,
+          "gemini": true,
+          "xai": false
+        },
+        "yes": 1,
+        "no": 2,
+        "panel_passed": false
+      }
+    ]
+  },
+  "per_ticket_verdicts": {
+    "openai": {
+      "t_train_001": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": false,
+        "justification": "The draft directly answers who the counterparty is, how prices are set, and how legs are matched, makes no guarantees, explains what happens if legs match or remain unmatched, introduces no new rules, aligns with the gold notes\u2019 P2P parlay matching, but it\u2019s longer than a few short sentences."
+      },
+      "t_train_002": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": false,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "It references the $1,200 amount, April 6 date, and delay, avoids guarantees, provides next steps, and is concise, but it introduces an ungrounded ACH weekend rule and does not commit to a 24-hour follow-up as required by the gold notes."
+      },
+      "t_train_005": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The reply is generic and doesn\u2019t address the user\u2019s specific timeline or threshold caveat, it promises to \u201cget it to you\u201d (an unverifiable outcome), but it does direct to the in\u2011app Documents and note a follow-up, introduces no new policy, and stays concise."
+      },
+      "t_train_007": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It mirrors the user's details (Markets tab, iPhone 14, iOS 26.4, post-update/reinstall), asks for build and error info, and states that engineering will be looped in next without inventing policies and stays concise, but it promises that engineering will follow up (an unverifiable outcome) and omits the gold-note workaround/thanks (though not contradictory)."
+      },
+      "t_train_008": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "It references the NY license, three rejections, two-week delay, and stuck funds, avoids guarantees and invented rules, and outlines next steps (routing to KYC and checking image quality), but it misses the gold-note requirement to commit to a KYC review within X hours while remaining concise."
+      },
+      "t_train_010": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It addresses the deposit minimum specifically and outlines next steps without inventing any policy and remains concise, but it makes an unverified promise that a human will follow up and omits the actual amount and welcome suggested by the gold notes."
+      },
+      "t_train_011": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The reply references the user\u2019s attempts and spam check, makes no guarantees, outlines checking the email/filters and escalation for a manual reset, stays within the gold guidance, and remains brief."
+      },
+      "t_train_013": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It addresses the specific 0.42 Knicks ML situation and offers an ops review upon receiving the order ID, aligns with the gold note\u2019s explanation about matching/volume without inventing policies and stays concise, but it overcommits by saying ops \u201cwill tell you what happened,\u201d which is an unverifiable guarantee."
+      },
+      "t_train_014": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It references the $200 ACH duplicate this morning, routes to payments ops and asks for last 4 digits and timing, avoids guarantees or timelines, clearly states next steps, adds no new policy, and stays concise."
+      },
+      "t_train_015": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "It addresses both weekend ACH timing and sport-specific P&L, stays concise and avoids inventing policy, but it promises a follow-up the agent can\u2019t verify and fails to provide the P&L guidance requested in the gold notes."
+      },
+      "t_train_016": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It references the Lakers/Warriors market and 4-hour delay, makes no dated guarantees, provides a follow-up next step, introduces no new policies, aligns with the data-feed/review explanation in the gold notes, and stays concise."
+      },
+      "t_train_018": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It references the 30-cent discrepancy, makes no guarantees, asks for a recent transaction ID as the next step, introduces no new policies, aligns with the gold guidance, and remains concise."
+      },
+      "t_train_021": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "It references the user's T-Mobile situation and multiple failed attempts, makes no guarantees, outlines routing to security ops and identity verification with interim checks, invents no policies, but omits offering an alternate verification path as required by the gold notes, and remains concise."
+      },
+      "t_train_022": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "It directly answers the limit-order fee question consistent with the commission-free P2P model, avoids promises or invented policies, suggests sending an order ID if a charge appears, and stays concise."
+      },
+      "t_train_025": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": true,
+        "states_next_steps": false,
+        "invents_no_policy": false,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft dodges the user\u2019s specific question about how Novig makes money, asserts an unsupported P2P/\u201cno house\u201d model, and provides no clear next steps, though it stays concise and avoids unverifiable promises."
+      },
+      "t_train_026": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The reply is concise and aligns with the gold notes by explaining KYC verification and follow-up without overpromising, but it doesn\u2019t reference the user\u2019s provided new address specifically."
+      },
+      "t_train_027": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "It\u2019s generic and doesn\u2019t state the ACH vs wire policy, promises an unverified follow-up, does at least state a next step, invents no fees, conflicts with the gold note to state the policy, and is brief."
+      },
+      "t_train_028": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The reply directly addresses the $1 verification charge with reassurance, avoids guarantees or timelines, provides next steps if it persists, introduces no new policies, aligns with the gold notes, and remains concise."
+      },
+      "t_train_030": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": false,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The reply warmly acknowledges the app update feedback without promises or invented policies and stays concise, but it doesn\u2019t mention passing the feedback to the product team or outline next steps, so it\u2019s not fully aligned with the gold notes."
+      }
+    },
+    "gemini": {
+      "t_train_001": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": false,
+        "justification": "The draft answers all the user's specific questions but is too long and could be condensed into a single, more concise paragraph."
+      },
+      "t_train_002": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": false,
+        "consistent_with_gold": false,
+        "within_length": false,
+        "justification": "The draft invents a new requirement for the user (providing account digits) and fails to commit to the 24-hour follow-up specified in the gold notes."
+      },
+      "t_train_005": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft promises to 'get it to you,' which is an unverifiable promise as the user may not have qualified for a 1099."
+      },
+      "t_train_007": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft is inconsistent with the gold notes because it fails to thank the user for their report or suggest the web workaround."
+      },
+      "t_train_008": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft acknowledges the user's specific points of frustration, states a clear next step, and aligns with the gold notes' guidance without making unverified promises."
+      },
+      "t_train_010": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft is inconsistent with the gold notes because it fails to welcome the new user."
+      },
+      "t_train_011": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft acknowledges the user's specific attempts, correctly outlines the next steps per the gold notes, and avoids making any promises."
+      },
+      "t_train_013": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": false,
+        "justification": "The draft is helpful and accurate but uses three paragraphs when one or two would have been sufficient."
+      },
+      "t_train_014": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft perfectly follows the gold notes by acknowledging the user's specific issue, asking for the required information, and stating the next steps without making promises."
+      },
+      "t_train_015": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft is inconsistent with the gold notes because it defers the P&L question to another agent instead of providing a direct answer as instructed."
+      },
+      "t_train_016": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft is inconsistent with the gold notes because it fails to thank the user for their thoughtful question."
+      },
+      "t_train_018": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft acknowledges the specific amount, requests a transaction ID to investigate as per the gold notes, and does so concisely."
+      },
+      "t_train_021": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft is inconsistent with the gold notes because it fails to offer an alternate verification path and asks the user to check account details while they are locked out."
+      },
+      "t_train_022": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft correctly states the commission-free policy and explains the P2P model, directly answering the user's question in a concise way."
+      },
+      "t_train_025": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": false,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft deflects the user's question entirely, which is inconsistent with the gold notes' instruction to provide a high-level, honest answer."
+      },
+      "t_train_026": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft is good but fails to acknowledge the specific new address the user provided in their ticket."
+      },
+      "t_train_027": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "The draft fails to answer the user's direct question about withdrawal fees, which the gold notes explicitly instruct it to do."
+      },
+      "t_train_028": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft correctly identifies the $1 charge as a standard verification, explains it will reverse, and provides clear next steps, all of which is consistent with the gold notes."
+      },
+      "t_train_030": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "The draft is a brief, warm thank-you that directly addresses the user's feedback, as recommended by the gold notes."
+      }
+    },
+    "xai": {
+      "t_train_001": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": false,
+        "justification": "Draft correctly explains peer-to-peer leg matching per gold notes and ticket questions, but exceeds concise length with multiple paragraphs and an unnecessary escalation sentence."
+      },
+      "t_train_002": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": false,
+        "consistent_with_gold": false,
+        "within_length": false,
+        "justification": "Draft references amount/date and escalates but invents weekend rule, omits 24-hour follow-up commitment, and exceeds concise length with extra explanation."
+      },
+      "t_train_005": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft promises delivery without noting the threshold requirement from gold notes and therefore fails no_unverifiable_promise and consistent_with_gold."
+      },
+      "t_train_007": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft covers device details and version request plus engineering escalation but omits the required web-workaround suggestion from gold notes."
+      },
+      "t_train_008": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft speculates on rejection causes and omits both the X-hour review commitment and direct question required by gold notes."
+      },
+      "t_train_010": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft defers without answering or welcoming, promises unverified human follow-up, and omits gold-required brief amount handling."
+      },
+      "t_train_011": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "Draft matches all gold notes while directly referencing the user's two attempts and spam check, stays concise, and avoids any unverified promises or invented rules."
+      },
+      "t_train_013": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "Draft directly addresses the 0.42 Knicks ML order, explains fillable size via peer-to-peer matching, and offers the exact next step of sharing the order ID for ops review."
+      },
+      "t_train_014": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "Draft matches gold notes by acknowledging the exact $200 double-charge issue, requesting the required details, routing to payments ops without promising any resolution or timeline."
+      },
+      "t_train_015": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft answers both questions but defers P&L instead of checking the activity filter or stating it is not a feature per gold notes."
+      },
+      "t_train_016": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft mentions the 4-hour Lakers/Warriors gap and promises a human follow-up but fails to explain official data feed + occasional human review per the gold notes."
+      },
+      "t_train_018": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft omits the required note on rounding/fee accruals and the thank-you, making it inconsistent with gold while still being concise and action-oriented."
+      },
+      "t_train_021": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft correctly routes to security ops and notes the T-Mobile/4-attempt details but omits offering any alternate verification path (email or app 2FA) required by gold notes."
+      },
+      "t_train_022": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "Draft directly answers the limit-order fee question per gold notes, invites order ID if needed, and stays concise without invented rules or promises."
+      },
+      "t_train_025": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": true,
+        "states_next_steps": false,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft deflects the revenue question entirely instead of giving the gold-notes high-level answer and offers no concrete next step."
+      },
+      "t_train_026": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": true,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": true,
+        "within_length": true,
+        "justification": "Draft fails only on acknowledges_specifics because it never references the concrete address the user supplied."
+      },
+      "t_train_027": {
+        "acknowledges_specifics": false,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft defers entirely instead of stating the ACH/wire policy per gold notes and makes an unverifiable follow-up promise while remaining too generic."
+      },
+      "t_train_028": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": false,
+        "states_next_steps": true,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft adds an unmentioned 'several days' timeframe and is therefore not fully consistent with gold notes or free of unverifiable timing language."
+      },
+      "t_train_030": {
+        "acknowledges_specifics": true,
+        "no_unverifiable_promise": true,
+        "states_next_steps": false,
+        "invents_no_policy": true,
+        "consistent_with_gold": false,
+        "within_length": true,
+        "justification": "Draft thanks user for update feedback but omits passing it to product team and states no next steps."
+      }
+    }
+  }
+}

@@ -20,8 +20,12 @@ behind one interface: `predict(ticket) -> Prediction`. Two commitments shaped ev
   validate-before-cache disk cache.
 
 **Key decisions:** a Haiku→Sonnet cascade (escalation only adds protection, never downgrades;
-property-tested); a cross-provider (OpenAI) judge, eval-only, trusted only after catching
-every seeded canary; no RAG (none provided; the drafter declines to invent facts instead).
+property-tested); a three-lab judge panel (OpenAI GPT-5 + Google Gemini 2.5 Pro + xAI grok-3-mini),
+eval-only, each trusted only after catching every seeded canary — the drafter is Anthropic, so
+cross-lab judges give an independent read, pairwise agreement is an eval signal, and the panel
+majority is the release-gate verdict. Any judge that fails at any point (canary miss, missing
+key, rate-limit throttle) is dropped without sinking the panel. No RAG (none provided; the
+drafter declines to invent facts instead).
 
 ## What the evals showed
 Validation pool, n=22 (the 8 few-shot exemplars are excluded from scoring); 95% bootstrap CIs:
@@ -34,9 +38,11 @@ Validation pool, n=22 (the 8 few-shot exemplars are excluded from scoring); 95% 
 | **false-draft, hard rules** | **drafted when a hard rule forbids it: the cardinal error** | **0 / 5** (0 on all labeled data) |
 | false-decline | refused a ticket we should have drafted | 2 / 17, non-deterministic (see below) |
 | escalation rate | tickets the cheap model hands to the strong one | 33% (budget 15–35%) |
-| judge canaries | planted-flaw drafts the judge must catch before its scores count | 3 / 3 caught |
+| judge canaries | planted-flaw drafts each judge must catch before scores count | 3 / 3 each (OpenAI, Gemini, xAI) |
+| pairwise agreement | independent judges agree on overall pass/fail per draft | OpenAI–Gemini 84%, OpenAI–xAI 79%, Gemini–xAI 74% |
+| panel majority | 3-lab majority verdict per draft; the number a release gate would use | 5 / 19 pass; 13 unanimous, 6 split (2-1) |
 
-Cost ≈ $0.50 (Anthropic, cached) + ~$0.22 (judge). \* 100% is **threshold-optimized on
+Cost ≈ $0.50 (Anthropic, cached) + $0.27 (three judges combined: OpenAI $0.23, Gemini $0.03, xAI $0.006). \* 100% is **threshold-optimized on
 validation**, not held-out; the eval set is unlabeled. On that unlabeled set the system's
 behavior shifts the way it should for harder traffic: escalation rises 33%→47%, the share of
 tickets it drafts falls 70%→53%, and the lowest confidence it reports drops 0.75→0.60. The
@@ -67,9 +73,13 @@ cautious in response.
    settlement windows, KYC steps) and let the drafter cite them, attaching each retrieved
    snippet so the output guard can verify grounding. This converts today's deferrals and
    fail-closed declines into complete answers; it is the single biggest quality lever.
-2. **Multi-judge panel.** One judge has variance; three judges from different providers,
-   majority-voting against the same rubric and canaries, makes draft-quality scores stable
-   enough to gate releases on.
+2. **Multi-judge panel — extend it.** Three judges from three labs are in now (OpenAI GPT-5 +
+   Google Gemini 2.5 Pro + xAI grok-3-mini). Pairwise agreement is 74–84% and the panel
+   majority verdict passes 5/19 drafts with 13 unanimous and 6 splits (2-1). The splits
+   cluster on `consistent_with_gold` and `no_unverifiable_promise` — the subjective criteria
+   — which is the right signal: judges converge on the objective checks and disagree exactly
+   where a human reviewer would. Next: weight judges by canary sensitivity, add a fourth for
+   quorum stability, and gate release on the panel majority rather than any single judge.
 3. **Threshold auto-tuning.** The escalation threshold is currently chosen by a manual sweep;
    close the loop so it re-optimizes as labeled volume grows, with the sweep re-run as a CI
    step.

@@ -6,6 +6,7 @@ from evals.judge import (
     _CRITERIA,
     JudgeVerdict,
     build_judge,
+    build_judges,
     run_canaries,
     score_draft,
 )
@@ -80,3 +81,26 @@ def test_build_judge_is_none_without_key(monkeypatch) -> None:
 def test_build_judge_returns_judge_with_key(monkeypatch) -> None:
     monkeypatch.setattr("evals.judge.load_openai_key", lambda: "sk-test")
     assert build_judge(Config()) is not None
+
+
+def test_build_judges_empty_without_keys(monkeypatch) -> None:
+    monkeypatch.setattr("evals.judge.load_openai_key", lambda: None)
+    monkeypatch.setattr("evals.judge.load_google_key", lambda: None)
+    monkeypatch.setattr("evals.judge.load_xai_key", lambda: None)
+    assert build_judges(Config()) == []
+
+
+def test_build_judges_returns_all_three_when_all_keys_present(monkeypatch) -> None:
+    monkeypatch.setattr("evals.judge.load_openai_key", lambda: "sk-test")
+    monkeypatch.setattr("evals.judge.load_google_key", lambda: "gk-test")
+    monkeypatch.setattr("evals.judge.load_xai_key", lambda: "xk-test")
+    labels = [label for label, _ in build_judges(Config())]
+    assert labels == ["openai", "gemini", "xai"]
+
+
+def test_build_judges_drops_missing_labs(monkeypatch) -> None:
+    monkeypatch.setattr("evals.judge.load_openai_key", lambda: None)
+    monkeypatch.setattr("evals.judge.load_google_key", lambda: "gk-test")
+    monkeypatch.setattr("evals.judge.load_xai_key", lambda: None)
+    labels = [label for label, _ in build_judges(Config())]
+    assert labels == ["gemini"]
