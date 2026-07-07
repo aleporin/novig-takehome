@@ -1,9 +1,10 @@
 """Cross-provider judges for draft quality. Eval-only.
 
-Two independent judges — OpenAI (GPT-class) and Google (Gemini) — the only
-non-Anthropic models in the system. Two different labs is deliberate: the drafter
-is Anthropic, so cross-lab judges give an independent read, and their agreement
-rate is itself an eval signal. Missing keys degrade gracefully: build_judges
+Three independent judges — OpenAI (GPT-class), Google (Gemini), xAI (Grok) —
+the only non-Anthropic models in the system. Three different labs is deliberate:
+the drafter is Anthropic, so cross-lab judges give an independent read, and their
+agreement rate + a majority vote of the three make the draft-quality score robust
+to any single judge's variance. Missing keys degrade gracefully: build_judges
 drops whichever judge has no key and the reporter records what actually ran.
 Same discipline as the Anthropic client — retries, timeout, disk cache, faked in
 tests — with judges pinned in config. Before any judge number is quoted, the
@@ -21,7 +22,7 @@ from typing import Protocol, runtime_checkable
 from pydantic import BaseModel
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from triage.config import Config, load_google_key, load_openai_key
+from triage.config import Config, load_google_key, load_openai_key, load_xai_key
 from triage.llm.cache import ResponseCache
 from triage.llm.types import LLMError, TransientLLMError
 from triage.routing.cost_tracker import CallRecord, call_cost
@@ -68,7 +69,13 @@ def _key(model: str, system: str, user: str) -> str:
 
 
 class OpenAIJudge:
-    """OpenAI-backed judge with retries and disk caching."""
+    """OpenAI-backed judge with retries and disk caching.
+
+    The base_url seam lets subclasses point at other OpenAI-compatible endpoints
+    (xAI, DeepSeek, etc.) without duplicating the retry/cache/parse code.
+    """
+
+    _base_url: str | None = None  # None = OpenAI default endpoint
 
     def __init__(self, api_key, model, *, cache=None, timeout_s=60.0, max_retries=4) -> None:
         self._api_key = api_key
@@ -83,7 +90,10 @@ class OpenAIJudge:
         if self._client is None:
             import openai
 
-            self._client = openai.OpenAI(api_key=self._api_key, timeout=self._timeout)
+            kwargs = {"api_key": self._api_key, "timeout": self._timeout}
+            if self._base_url is not None:
+                kwargs["base_url"] = self._base_url
+            self._client = openai.OpenAI(**kwargs)
         return self._client
 
     def score(self, system: str, user: str) -> JudgeVerdict:
@@ -151,6 +161,16 @@ class OpenAIJudge:
             raise LLMError("judge returned no parsed output")
         usage = completion.usage
         return parsed, usage.prompt_tokens, usage.completion_tokens
+
+
+class XAIJudge(OpenAIJudge):
+    """xAI (Grok) judge — OpenAI-compatible API at api.x.ai.
+
+    Same retry/cache/parse machinery as OpenAIJudge; only the endpoint differs.
+    Structured output via response_format is supported by the xAI API.
+    """
+
+    _base_url = "https://api.x.ai/v1"
 
 
 class GeminiJudge:
@@ -300,6 +320,20 @@ def build_judges(config: Config) -> list[tuple[str, JudgeClient]]:
                 GeminiJudge(
                     google_key,
                     config.model_judge_secondary,
+                    cache=cache,
+                    timeout_s=config.request_timeout_s,
+                    max_retries=config.max_retries,
+                ),
+            )
+        )
+    xai_key = load_xai_key()
+    if xai_key:
+        judges.append(
+            (
+                "xai",
+                XAIJudge(
+                    xai_key,
+                    config.model_judge_tertiary,
                     cache=cache,
                     timeout_s=config.request_timeout_s,
                     max_retries=config.max_retries,

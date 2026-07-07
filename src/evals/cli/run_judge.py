@@ -82,6 +82,42 @@ def _agreement(a: dict[str, JudgeVerdict], b: dict[str, JudgeVerdict]) -> dict:
     }
 
 
+def _majority(labels: list[str], per_judge: dict[str, dict[str, JudgeVerdict]]) -> dict:
+    """Ticket-level majority vote across every judge that scored the ticket.
+
+    A ticket 'passes' the panel if strictly more than half of the judges that
+    scored it returned passed=True. Reports per-ticket votes plus the panel's
+    pass rate, unanimity rate, and the tickets where any judge dissented.
+    """
+    common = set.intersection(*(set(per_judge[label]) for label in labels))
+    per_ticket: list[dict] = []
+    panel_pass = unanimous = split_count = 0
+    for tid in sorted(common):
+        votes = {label: per_judge[label][tid].passed for label in labels}
+        yes = sum(1 for v in votes.values() if v)
+        no = len(votes) - yes
+        panel_verdict = yes > no
+        if panel_verdict:
+            panel_pass += 1
+        if yes == 0 or no == 0:
+            unanimous += 1
+        else:
+            split_count += 1
+        per_ticket.append(
+            {"ticket_id": tid, "votes": votes, "yes": yes, "no": no, "panel_passed": panel_verdict}
+        )
+    n = len(common)
+    return {
+        "judges": labels,
+        "n_common": n,
+        "panel_pass_rate": panel_pass / n if n else 0.0,
+        "panel_passed": panel_pass,
+        "unanimous": unanimous,
+        "split": split_count,
+        "per_ticket": per_ticket,
+    }
+
+
 def main() -> None:
     config = Config()
     setup_logging(console_level=logging.WARNING)
@@ -94,10 +130,16 @@ def main() -> None:
 
     rubric = load_rubric(config)
 
-    # Calibrate each judge on the seeded canaries; drop any that misses one.
+    # Calibrate each judge on the seeded canaries; drop any that misses one, and
+    # drop any that fails to call at all (missing credits, transient outage) so a
+    # single broken lab does not sink the panel.
     trusted: list[tuple[str, object]] = []
     for label, judge in judges:
-        canary = run_canaries(judge, rubric)
+        try:
+            canary = run_canaries(judge, rubric)
+        except Exception as exc:
+            log.info("judge[%s] UNAVAILABLE: %s", label, exc)
+            continue
         log.info("judge[%s] canaries: caught %d/%d", label, canary.caught, canary.total)
         if canary.trustworthy:
             trusted.append((label, judge))
@@ -118,9 +160,15 @@ def main() -> None:
     per_judge_verdicts: dict[str, dict[str, JudgeVerdict]] = {}
     per_judge_summary: list[dict] = []
     per_judge_cost: list[dict] = []
+    completed: list[tuple[str, object]] = []
     for label, judge in trusted:
-        verdicts = _score_all(judge, rubric, enriched, by_id)
+        try:
+            verdicts = _score_all(judge, rubric, enriched, by_id)
+        except Exception as exc:
+            log.info("judge[%s] SCORING FAILED mid-run: %s", label, exc)
+            continue
         per_judge_verdicts[label] = verdicts
+        completed.append((label, judge))
         summary = _summarize_one(label, verdicts)
         per_judge_summary.append(summary)
         log.info(
@@ -145,33 +193,60 @@ def main() -> None:
             100 * cost.cache_hit_rate,
         )
 
-    agreement = None
-    if len(trusted) >= 2:
-        (label_a, _), (label_b, _) = trusted[0], trusted[1]
-        agreement = _agreement(per_judge_verdicts[label_a], per_judge_verdicts[label_b])
-        agreement["judges"] = [label_a, label_b]
+    # Pairwise agreement (every unordered pair) so the reader can see which two
+    # labs disagree most, not just an overall panel number.
+    pairwise: list[dict] = []
+    labels = [label for label, _ in completed]
+    for i, label_a in enumerate(labels):
+        for label_b in labels[i + 1 :]:
+            pair = _agreement(per_judge_verdicts[label_a], per_judge_verdicts[label_b])
+            pair["judges"] = [label_a, label_b]
+            pairwise.append(pair)
+            log.info(
+                "agreement[%s vs %s]: %d/%d overall (%.0f%%)",
+                label_a,
+                label_b,
+                pair["overall_matches"],
+                pair["n_common"],
+                100 * pair["overall_agreement"],
+            )
+            for name, rate in pair["per_criterion_agreement"].items():
+                log.info("  %s: %.0f%%", name, 100 * rate)
+            if pair["disagreements"]:
+                log.info("  disagreements: %s", [d["ticket_id"] for d in pair["disagreements"]])
+
+    # Majority vote across the panel — the single number a release gate would use.
+    majority = None
+    if len(completed) >= 3:
+        majority = _majority(labels, per_judge_verdicts)
         log.info(
-            "agreement[%s vs %s]: %d/%d overall (%.0f%%)",
-            label_a,
-            label_b,
-            agreement["overall_matches"],
-            agreement["n_common"],
-            100 * agreement["overall_agreement"],
+            "panel majority: %d/%d pass (%.0f%%); unanimous %d, split %d",
+            majority["panel_passed"],
+            majority["n_common"],
+            100 * majority["panel_pass_rate"],
+            majority["unanimous"],
+            majority["split"],
         )
-        for name, rate in agreement["per_criterion_agreement"].items():
-            log.info("  %s: %.0f%%", name, 100 * rate)
-        if agreement["disagreements"]:
-            log.info("disagreements: %s", [d["ticket_id"] for d in agreement["disagreements"]])
+        split_ids = [t["ticket_id"] for t in majority["per_ticket"] if t["yes"] not in (0, 3)]
+        if split_ids:
+            log.info("panel splits (2-1): %s", split_ids)
 
     # Persist to a timestamped results folder so the numbers have a record on disk.
     stamp = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%SZ")
-    run_dir = config.paths.results / f"{stamp}_dual_judge"
+    if len(completed) >= 3:
+        tag = "triple_judge"
+    elif len(completed) == 2:
+        tag = "dual_judge"
+    else:
+        tag = "single_judge"
+    run_dir = config.paths.results / f"{stamp}_{tag}"
     run_dir.mkdir(parents=True, exist_ok=True)
     payload = {
-        "judges": [{"label": lbl, "model": j._model} for lbl, j in trusted],
+        "judges": [{"label": lbl, "model": j._model} for lbl, j in completed],
         "per_judge": per_judge_summary,
         "per_judge_cost": per_judge_cost,
-        "agreement": agreement,
+        "pairwise_agreement": pairwise,
+        "majority": majority,
         "per_ticket_verdicts": {
             label: {tid: v.model_dump() for tid, v in verdicts.items()}
             for label, verdicts in per_judge_verdicts.items()

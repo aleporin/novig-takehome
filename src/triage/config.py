@@ -28,6 +28,7 @@ OPUS = "claude-opus-4-8"  # reserved; not used yet
 # rate is itself an eval signal. Pinned like the others; swap here if needed.
 OPENAI_JUDGE = "gpt-5"
 GEMINI_JUDGE = "gemini-2.5-pro"
+XAI_JUDGE = "grok-4"
 
 # Models that reject the temperature parameter (deprecated on newer models). We omit
 # it for them, so their output is byte-reproducible via the disk cache, not via
@@ -50,6 +51,7 @@ MODEL_PRICING: dict[str, Pricing] = {
     OPUS: Pricing(5.00, 25.00),
     OPENAI_JUDGE: Pricing(1.25, 10.00),  # OpenAI judge (eval-only); approximate
     GEMINI_JUDGE: Pricing(1.25, 10.00),  # Google judge (eval-only); approximate
+    XAI_JUDGE: Pricing(3.00, 15.00),  # xAI grok-4 (eval-only); approximate
 }
 
 
@@ -80,6 +82,7 @@ class Config:
     model_t2: str = SONNET
     model_judge: str = OPENAI_JUDGE  # primary cross-provider judge; eval-only; optional key
     model_judge_secondary: str = GEMINI_JUDGE  # second-lab judge for agreement; optional key
+    model_judge_tertiary: str = XAI_JUDGE  # third-lab judge to break ties by majority vote
 
     # Draft length bound (characters) enforced by the output guardrail.
     draft_max_chars: int = 1600
@@ -153,3 +156,15 @@ def load_google_key(env_path: Path | None = None) -> str | None:
 
     load_dotenv(env_path or (PROJECT_ROOT / "secrets.env"))
     return os.environ.get("GOOGLE_API_KEY")
+
+
+def load_xai_key(env_path: Path | None = None) -> str | None:
+    """Read XAI_API_KEY for the tertiary (Grok) judge. Optional.
+
+    Same graceful-degrade contract: a missing key just drops the third judge,
+    and the majority vote falls back to pairwise agreement.
+    """
+    from dotenv import load_dotenv
+
+    load_dotenv(env_path or (PROJECT_ROOT / "secrets.env"))
+    return os.environ.get("XAI_API_KEY")
