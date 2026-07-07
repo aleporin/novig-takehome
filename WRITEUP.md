@@ -67,10 +67,10 @@ measurably more sensitive/urgent than train, which the system reflects.
 ## Notes
 - **Confidence** = "probability a support lead reviewing this would not overturn the decision."
   Hard-rule no-drafts are 1.0; cross-tier disagreement caps it.
-- **Determinism:** T1 (Haiku) runs at temperature 0; T2 (Sonnet) rejects the temperature param,
-  so Sonnet-drafted tickets (money-in-motion / high-urgency) are byte-reproducible only via the
-  response cache — a cache-less fresh run may reword them (decisions are unaffected). Both models
-  are version-pinned; `predictions.jsonl` is the cached canonical run.
+- **Determinism / reproducibility:** T1 (Haiku) runs at temperature 0; T2 (Sonnet) takes no
+  temperature, so Sonnet-drafted tickets are reproducible only via the response cache. That cache
+  is committed, so `make eval` on a fresh clone byte-reproduces `predictions.jsonl` with no API key
+  (the key is needed only on a cache miss). Both models are version-pinned.
 - **Flag annotations:** the exemplar tickets' risk flags are hand-annotated (the data has no gold
   flags), so flag-alignment metrics inherit annotator judgment.
 - **Category accuracy understates safety:** `t_train_012` was miscategorized yet still correctly

@@ -11,13 +11,17 @@ See **[WRITEUP.md](WRITEUP.md)** for approach, results, failure modes, and next 
 
 ```sh
 make install                         # pinned deps into your env
-cp secrets.env.example secrets.env   # add ANTHROPIC_API_KEY (OPENAI_API_KEY optional, judge only)
 
 make test          # offline suite, no API key
-make eval          # run the eval set -> predictions.jsonl (+ validate + unlabeled signal)
+make eval          # eval set -> predictions.jsonl (reproduces from the committed cache, no key)
 make train-metrics # classifier metrics on the labeled train set
 make coverage      # 100% branch coverage on the safety files
 ```
+
+The response cache is committed, so `make eval` byte-reproduces `predictions.jsonl`
+from a fresh clone with no API key. To run new tickets (cache misses), add a key:
+`cp secrets.env.example secrets.env` and set `ANTHROPIC_API_KEY` (`OPENAI_API_KEY`
+is optional, judge only).
 
 ## Layout
 
