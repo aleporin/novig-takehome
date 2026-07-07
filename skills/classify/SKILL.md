@@ -33,3 +33,5 @@ extra review.
 - Category and urgency are independent. A deposits ticket can be low or high urgency.
 - Set flags from the ticket content regardless of category — a deposits ticket can still
   mention a minor.
+- Use `other` only as a last resort. If a ticket plausibly fits any of the ten specific
+  categories, choose that one instead.

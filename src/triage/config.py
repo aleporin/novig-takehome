@@ -79,9 +79,10 @@ class Config:
     # Draft length bound (characters) enforced by the output guardrail.
     draft_max_chars: int = 1600
 
-    # T1 escalates to T2 below this confidence. Frozen at 0.90 from a measured
-    # threshold sweep: it fixes the classifier's 'other' category traps (82%->95%).
-    t1_confidence_threshold: float = 0.90
+    # T1 escalates to T2 below this confidence. Frozen at 0.80 from a measured sweep:
+    # after the 'other is a last resort' prompt fix T1 reaches 100% category on its
+    # own, so 0.80 matches 0.90's accuracy at a lower escalation rate (33% vs 43%).
+    t1_confidence_threshold: float = 0.80
     escalation_rate_floor: float = 0.15
     escalation_rate_ceiling: float = 0.35
 
