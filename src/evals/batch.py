@@ -8,6 +8,7 @@ both. That table is the evidence for the two-independent-detectors claim.
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 from triage.config import Config
@@ -92,6 +93,43 @@ def layer_attribution(enriched: list[Enriched], tickets: list[Ticket]) -> list[d
 def unattributed_no_draft(rows: list[dict]) -> list[str]:
     """Gold no-draft tickets that no layer flagged. Must always be empty."""
     return [row["ticket_id"] for row in rows if row["layer"] == "neither"]
+
+
+def _dist(counter: Counter, total: int) -> dict[str, float]:
+    return {k: round(v / total, 3) for k, v in sorted(counter.items())}
+
+
+def eval_signal(train_tickets: list[Ticket], eval_enriched: list[Enriched]) -> dict:
+    """Unlabeled-eval signal: predicted distributions vs train, drift, and confidence.
+
+    With temperature 0 and caching, cross-run self-consistency is trivially 100%, so
+    the informative signal is distribution drift from train plus the escalation rate
+    and confidence spread on the eval set.
+    """
+    train = [t for t in train_tickets if t.label is not None]
+    n_eval = len(eval_enriched)
+    confidences = [e.prediction.confidence for e in eval_enriched]
+    return {
+        "n_eval": n_eval,
+        "category": {
+            "train": _dist(Counter(t.label.category.value for t in train), len(train)),
+            "eval": _dist(Counter(e.prediction.category.value for e in eval_enriched), n_eval),
+        },
+        "urgency": {
+            "train": _dist(Counter(t.label.urgency.value for t in train), len(train)),
+            "eval": _dist(Counter(e.prediction.urgency.value for e in eval_enriched), n_eval),
+        },
+        "should_draft_rate": {
+            "train": round(sum(t.label.should_draft for t in train) / len(train), 3),
+            "eval": round(sum(e.prediction.should_draft for e in eval_enriched) / n_eval, 3),
+        },
+        "eval_escalation_rate": round(sum(e.escalated for e in eval_enriched) / n_eval, 3),
+        "eval_confidence": {
+            "min": min(confidences),
+            "mean": round(sum(confidences) / n_eval, 3),
+            "max": max(confidences),
+        },
+    }
 
 
 def collect_calls(enriched: list[Enriched]) -> list[CallRecord]:
