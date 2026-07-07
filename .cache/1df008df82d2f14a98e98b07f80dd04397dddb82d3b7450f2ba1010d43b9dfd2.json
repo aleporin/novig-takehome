@@ -1,0 +1,1 @@
+{"input_tokens": 5096, "output_tokens": 182, "text": "{\"category\": \"legal_regulatory\", \"confidence\": 0.85, \"flags\": {\"jurisdictional_eligibility\": true}, \"reasoning\": \"User asks whether Novig is legal/available in Texas after relocating, a jurisdictional eligibility question.\", \"urgency\": \"medium\"}"}

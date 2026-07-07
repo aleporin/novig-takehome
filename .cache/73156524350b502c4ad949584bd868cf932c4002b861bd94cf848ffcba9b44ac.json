@@ -1,0 +1,1 @@
+{"input_tokens": 5074, "output_tokens": 195, "text": "{\"category\": \"deposits_withdrawals\", \"confidence\": 0.8, \"flags\": {\"disputes_novig_fact\": true}, \"reasoning\": \"User reports being charged twice for a single deposit but account shows only one, effectively disputing Novig's recorded figure; money is in motion so urgency is high.\", \"urgency\": \"high\"}"}

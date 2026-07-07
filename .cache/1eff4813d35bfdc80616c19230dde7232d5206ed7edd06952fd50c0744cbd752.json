@@ -1,0 +1,1 @@
+{"input_tokens": 5126, "output_tokens": 191, "text": "{\"category\": \"market_questions\", \"confidence\": 0.85, \"flags\": {\"asks_binding_policy_or_spec\": true}, \"reasoning\": \"User is asking for a definitive settlement rule on a specific market to inform a trading decision, which is a contract-spec question rather than a dispute.\", \"urgency\": \"medium\"}"}

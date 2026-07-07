@@ -1,0 +1,1 @@
+{"input_tokens": 5094, "output_tokens": 192, "text": "{\"category\": \"problem_gambling\", \"confidence\": 0.95, \"flags\": {\"rg_signal\": true, \"self_harm_or_distress\": false}, \"reasoning\": \"User describes significant losses and loss of control over gambling, a clear problem gambling signal requiring escalation.\", \"urgency\": \"escalate_immediately\"}"}

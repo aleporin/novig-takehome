@@ -12,7 +12,7 @@ from triage.schemas import Ticket
 
 def build_client(config: Config) -> AnthropicClient:
     """Construct the real Anthropic-backed client with disk caching."""
-    key = load_api_key()
+    key = load_api_key(required=False)
     transport = _default_transport(key, config.request_timeout_s)
     cache = ResponseCache(config.paths.cache) if config.cache_enabled else None
     return AnthropicClient(transport, cache=cache, max_retries=config.max_retries)

@@ -1,0 +1,1 @@
+{"input_tokens": 5049, "output_tokens": 196, "text": "{\"category\": \"deposits_withdrawals\", \"confidence\": 0.85, \"flags\": {\"asks_binding_policy_or_spec\": true}, \"reasoning\": \"User asks a general question about withdrawal fees, which touches on a policy detail they may rely on financially, but no money is currently at stake or blocked.\", \"urgency\": \"low\"}"}

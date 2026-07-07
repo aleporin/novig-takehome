@@ -1,0 +1,1 @@
+{"input_tokens": 5133, "output_tokens": 187, "text": "{\"category\": \"tax_documents\", \"confidence\": 0.9, \"flags\": {\"disputes_novig_fact\": true}, \"reasoning\": \"User claims their 1099 figure from Novig is incorrect versus their own records and wants it checked, with a filing deadline creating time pressure.\", \"urgency\": \"high\"}"}

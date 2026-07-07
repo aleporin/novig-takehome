@@ -1,0 +1,1 @@
+{"input_tokens": 1039, "output_tokens": 102, "text": "{\"reason\": \"The draft asserts the existence of a $5 fee for expedited withdrawal review. This fee is not listed in the allowed facts, so it cannot be stated as fact. The reply should say a human will follow up with withdrawal timeline and fee information instead.\", \"violates\": true}"}

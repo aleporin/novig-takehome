@@ -1,0 +1,1 @@
+{"input_tokens": 5058, "output_tokens": 198, "text": "{\"category\": \"trading_mechanics\", \"confidence\": 0.75, \"flags\": {\"asks_binding_policy_or_spec\": true}, \"reasoning\": \"User asks about fee structure for limit orders, a specific policy/spec question they may rely on financially; otherwise routine trading mechanics question, low urgency.\", \"urgency\": \"low\"}"}

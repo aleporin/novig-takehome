@@ -1,0 +1,25 @@
+{
+  "escalation": {
+    "escalated": 10,
+    "total": 30,
+    "rate": 0.3333333333333333,
+    "reasons": {
+      "sensitive_category": 7,
+      "risk_flag": 2,
+      "low_confidence": 1
+    }
+  },
+  "cost": {
+    "n_calls": 88,
+    "total_cost_usd": 0.43161,
+    "cost_by_tier": {
+      "T1": 0.142659,
+      "draft": 0.072093,
+      "audit": 0.035087999999999994,
+      "T2": 0.18177000000000001
+    },
+    "p50_latency_ms": 0.0,
+    "p95_latency_ms": 0.0,
+    "cache_hit_rate": 1.0
+  }
+}

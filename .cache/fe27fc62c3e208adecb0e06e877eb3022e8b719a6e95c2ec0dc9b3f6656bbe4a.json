@@ -1,0 +1,1 @@
+{"input_tokens": 5131, "output_tokens": 166, "text": "{\"category\": \"account_access\", \"confidence\": 0.9, \"flags\": {}, \"reasoning\": \"User is locked out due to password reset email not arriving; no signs of compromise or other risk factors, just an account access issue.\", \"urgency\": \"medium\"}"}

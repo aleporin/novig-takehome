@@ -1,0 +1,1 @@
+{"input_tokens": 3895, "output_tokens": 141, "text": "{\"category\": \"kyc_verification\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User has been blocked from depositing for 9 days while KYC verification remains in progress. This is a material blocker on account functionality and warrants urgent review.\", \"urgency\": \"high\"}"}

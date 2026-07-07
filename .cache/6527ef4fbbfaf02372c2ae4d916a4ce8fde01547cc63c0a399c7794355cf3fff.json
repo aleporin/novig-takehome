@@ -1,0 +1,1 @@
+{"input_tokens": 4321, "output_tokens": 136, "text": "{\"category\": \"account_access\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User is locked out of their account and unable to reset password due to missing reset email. This is a material access blocker that warrants a prompt response.\", \"urgency\": \"high\"}"}

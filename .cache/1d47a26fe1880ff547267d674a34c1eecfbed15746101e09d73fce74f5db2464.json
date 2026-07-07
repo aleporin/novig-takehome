@@ -1,0 +1,1 @@
+{"input_tokens": 5068, "output_tokens": 158, "text": "{\"category\": \"kyc_verification\", \"confidence\": 0.75, \"flags\": {}, \"reasoning\": \"User requests an address update, which relates to identity/profile verification information; no risk signals present.\", \"urgency\": \"low\"}"}

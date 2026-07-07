@@ -1,0 +1,1 @@
+{"input_tokens": 3829, "output_tokens": 151, "text": "{\"category\": \"deposits_withdrawals\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User has a withdrawal stuck beyond the stated processing window (6 days vs. 3-5 business days). Money is in motion and the user is materially blocked from accessing their funds, warranting high urgency.\", \"urgency\": \"high\"}"}

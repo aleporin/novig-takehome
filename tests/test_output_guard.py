@@ -6,7 +6,13 @@ from tests.fakes import FakeLLMClient
 from triage.config import Config
 from triage.context.assembler import PromptAssembler
 from triage.schemas import Category, Classification, RiskFlags, Urgency
-from triage.stages.output_guard import AuditVerdict, deterministic_violations, produce_draft
+from triage.stages.output_guard import (
+    AUDIT_CANARIES,
+    AuditVerdict,
+    deterministic_violations,
+    produce_draft,
+    run_audit_canaries,
+)
 
 _SIG = "\n\nNovig Support"
 _CLEAN = AuditVerdict(violates=False)
@@ -82,3 +88,21 @@ def test_audit_violation_triggers_regen(make_ticket) -> None:
 def test_second_failure_downgrades_to_no_draft(make_ticket) -> None:
     draft, _ = _run_guard(make_ticket(), "no sig one", _CLEAN, "no sig two", _CLEAN)
     assert draft is None
+
+
+def test_audit_canaries_catch_and_precision_pass() -> None:
+    # Each catch canary flags, the precision canary passes.
+    verdicts = [AuditVerdict(violates=c.should_flag) for c in AUDIT_CANARIES]
+    report = run_audit_canaries(FakeLLMClient(verdicts), Config())
+    assert report.caught == report.n_flag
+    assert report.passed == report.n_pass
+    assert report.trustworthy
+
+
+def test_audit_canary_miss_and_false_positive_reported() -> None:
+    # Invert every verdict: catch canaries missed, precision canary over-flagged.
+    verdicts = [AuditVerdict(violates=not c.should_flag) for c in AUDIT_CANARIES]
+    report = run_audit_canaries(FakeLLMClient(verdicts), Config())
+    assert len(report.missed) == report.n_flag
+    assert len(report.false_positives) == report.n_pass
+    assert not report.trustworthy

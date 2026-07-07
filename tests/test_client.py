@@ -92,6 +92,21 @@ def test_structured_response_without_tool_use_is_terminal() -> None:
         client.complete(req)
 
 
+def test_wrapped_structured_output_is_unwrapped() -> None:
+    # Some models nest the object under a single key; the client recovers it.
+    payload = {
+        "Classification": {
+            "category": "trading_mechanics",
+            "urgency": "low",
+            "confidence": 0.9,
+            "flags": {},
+        }
+    }
+    client = _no_wait_client(lambda params: _tool_message(payload))
+    req = LLMRequest(model="m", system="s", prompt="p", response_schema=Classification)
+    assert client.complete(req).parsed.category == Category.trading_mechanics
+
+
 def test_invalid_structured_output_raises_llm_error() -> None:
     client = _no_wait_client(lambda params: _tool_message({"category": "not_a_category"}))
     req = LLMRequest(model="m", system="s", prompt="p", response_schema=Classification)

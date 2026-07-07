@@ -79,9 +79,10 @@ class Config:
     # Draft length bound (characters) enforced by the output guardrail.
     draft_max_chars: int = 1600
 
-    # T1 escalates to T2 below this confidence. Frozen at 0.90 from a measured
-    # threshold sweep: it fixes the classifier's 'other' category traps (82%->95%).
-    t1_confidence_threshold: float = 0.90
+    # T1 escalates to T2 below this confidence. Frozen at 0.80 from a measured sweep:
+    # after the 'other is a last resort' prompt fix T1 reaches 100% category on its
+    # own, so 0.80 matches 0.90's accuracy at a lower escalation rate (33% vs 43%).
+    t1_confidence_threshold: float = 0.80
     escalation_rate_floor: float = 0.15
     escalation_rate_ceiling: float = 0.35
 
@@ -106,17 +107,18 @@ class Config:
     log_payloads: bool = False
 
 
-def load_api_key(env_path: Path | None = None) -> str:
+def load_api_key(env_path: Path | None = None, *, required: bool = True) -> str | None:
     """Read ANTHROPIC_API_KEY from secrets.env or the environment.
 
-    Not called at import time, so the offline tests never need a key. Raises if
-    the key is missing.
+    Not called at import time, so the offline tests never need a key. With
+    required=True (default) raises if the key is missing; with required=False
+    returns None, so a fully cached run can proceed with no key.
     """
     from dotenv import load_dotenv
 
     load_dotenv(env_path or (PROJECT_ROOT / "secrets.env"))
     key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key:
+    if not key and required:
         raise RuntimeError(
             "ANTHROPIC_API_KEY is not set. Copy secrets.env.example to secrets.env "
             "and add your key, or export it in the environment."

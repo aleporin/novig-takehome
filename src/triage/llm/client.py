@@ -29,13 +29,22 @@ logger = logging.getLogger(__name__)
 Transport = Callable[[dict[str, Any]], Any]
 
 
-def _default_transport(api_key: str, timeout_s: float) -> Transport:
-    """Build a transport that calls the Anthropic SDK and maps its errors to ours."""
+def _default_transport(api_key: str | None, timeout_s: float) -> Transport:
+    """Build a transport that calls the Anthropic SDK and maps its errors to ours.
+
+    The SDK client is built lazily on the first live call, so a fully cached run
+    needs no key; a cache miss with no key raises where the call is actually made.
+    """
     import anthropic
 
-    client = anthropic.Anthropic(api_key=api_key, timeout=timeout_s)
+    holder: dict[str, Any] = {}
 
     def _call(params: dict[str, Any]) -> Any:
+        client = holder.get("client")
+        if client is None:
+            if not api_key:
+                raise LLMError("ANTHROPIC_API_KEY is required for a live (cache-miss) call")
+            client = holder["client"] = anthropic.Anthropic(api_key=api_key, timeout=timeout_s)
         try:
             return client.messages.create(**params)
         except (
@@ -154,6 +163,19 @@ def _extract(message: Any, *, structured: bool) -> tuple[str, Usage]:
     return "".join(parts), usage
 
 
+def _unwrap_single_key(text: str) -> dict | None:
+    """Some models wrap the object under one top-level key (e.g. {"Classification": {...}})."""
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(data, dict) and len(data) == 1:
+        inner = next(iter(data.values()))
+        if isinstance(inner, dict):
+            return inner
+    return None
+
+
 def _parse(request: LLMRequest, text: str) -> Any | None:
     """Validate structured output against its schema. Returns None for plain text."""
     if request.response_schema is None:
@@ -161,5 +183,11 @@ def _parse(request: LLMRequest, text: str) -> Any | None:
     try:
         return request.response_schema.model_validate_json(text)
     except Exception as exc:
+        unwrapped = _unwrap_single_key(text)
+        if unwrapped is not None:
+            try:
+                return request.response_schema.model_validate(unwrapped)
+            except Exception:
+                pass
         # Any validation failure becomes our terminal error type.
         raise LLMError(f"structured output failed schema validation: {exc}") from exc

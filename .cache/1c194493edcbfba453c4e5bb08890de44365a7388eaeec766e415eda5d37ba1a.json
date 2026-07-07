@@ -1,0 +1,1 @@
+{"input_tokens": 3929, "output_tokens": 146, "text": "{\"category\": \"market_questions\", \"confidence\": 0.92, \"flags\": {}, \"reasoning\": \"User is asking about market settlement timing and process (why a 4-hour delay), not disputing the outcome or the grade itself. This is a straightforward market mechanics question. No risk flags present.\", \"urgency\": \"medium\"}"}
