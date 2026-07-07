@@ -154,6 +154,19 @@ def _extract(message: Any, *, structured: bool) -> tuple[str, Usage]:
     return "".join(parts), usage
 
 
+def _unwrap_single_key(text: str) -> dict | None:
+    """Some models wrap the object under one top-level key (e.g. {"Classification": {...}})."""
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(data, dict) and len(data) == 1:
+        inner = next(iter(data.values()))
+        if isinstance(inner, dict):
+            return inner
+    return None
+
+
 def _parse(request: LLMRequest, text: str) -> Any | None:
     """Validate structured output against its schema. Returns None for plain text."""
     if request.response_schema is None:
@@ -161,5 +174,11 @@ def _parse(request: LLMRequest, text: str) -> Any | None:
     try:
         return request.response_schema.model_validate_json(text)
     except Exception as exc:
+        unwrapped = _unwrap_single_key(text)
+        if unwrapped is not None:
+            try:
+                return request.response_schema.model_validate(unwrapped)
+            except Exception:
+                pass
         # Any validation failure becomes our terminal error type.
         raise LLMError(f"structured output failed schema validation: {exc}") from exc
