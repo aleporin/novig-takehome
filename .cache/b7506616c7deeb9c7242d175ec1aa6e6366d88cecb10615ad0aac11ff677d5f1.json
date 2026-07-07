@@ -1,0 +1,1 @@
+{"input_tokens": 3893, "output_tokens": 134, "text": "{\"category\": \"tax_documents\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User is asking for transaction history export for tax purposes. This is a straightforward tax_documents request with no money at stake or account access issues.\", \"urgency\": \"low\"}"}

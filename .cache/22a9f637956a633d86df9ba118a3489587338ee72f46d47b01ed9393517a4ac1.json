@@ -1,0 +1,1 @@
+{"input_tokens": 3785, "output_tokens": 135, "text": "{\"category\": \"account_access\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User cannot access their account due to a password reset email delivery failure. This is a direct access blocker that prevents login, warranting high urgency.\", \"urgency\": \"high\"}"}

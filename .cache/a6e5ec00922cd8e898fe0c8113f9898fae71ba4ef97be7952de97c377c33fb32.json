@@ -1,0 +1,1 @@
+{"input_tokens": 5128, "output_tokens": 180, "text": "{\"category\": \"market_questions\", \"confidence\": 0.85, \"flags\": {\"disputes_novig_fact\": false}, \"reasoning\": \"User explicitly says they are not disputing the outcome, just asking about the timing/process of settlement, which is a routine market question.\", \"urgency\": \"low\"}"}

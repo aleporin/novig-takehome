@@ -1,0 +1,1 @@
+{"input_tokens": 1070, "output_tokens": 109, "text": "{\"reason\": \"The draft correctly declines to assert a minimum withdrawal amount (which is not on the allowed facts list) and appropriately defers to human follow-up. It does not reference, hedge, or imply the existence of any fee, minimum, limit, or rule not in the allowed facts.\", \"violates\": false}"}

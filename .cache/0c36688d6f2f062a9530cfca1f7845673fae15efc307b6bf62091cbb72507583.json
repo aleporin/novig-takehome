@@ -1,0 +1,1 @@
+{"input_tokens": 5119, "output_tokens": 179, "text": "{\"category\": \"deposits_withdrawals\", \"confidence\": 0.7, \"flags\": {}, \"reasoning\": \"User asks two informational questions: withdrawal processing timing on weekends and a P&L filtering feature request; no urgency or risk signals present.\", \"urgency\": \"low\"}"}

@@ -1,0 +1,1 @@
+{"input_tokens": 5136, "output_tokens": 188, "text": "{\"category\": \"account_compromise\", \"confidence\": 0.88, \"flags\": {\"active_fraud\": false, \"unauthorized_access_reported\": true}, \"reasoning\": \"User reports a trade they did not authorize and did not place, indicating possible unauthorized account access.\", \"urgency\": \"escalate_immediately\"}"}

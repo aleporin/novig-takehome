@@ -1,0 +1,1 @@
+{"input_tokens": 3757, "output_tokens": 136, "text": "{\"category\": \"deposits_withdrawals\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User is asking a straightforward product question about withdrawal fees. No account access issues, no money stuck, no sensitive signals. Routine informational inquiry.\", \"urgency\": \"low\"}"}

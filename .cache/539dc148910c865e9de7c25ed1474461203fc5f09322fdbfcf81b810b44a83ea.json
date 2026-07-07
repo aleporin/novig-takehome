@@ -1,0 +1,1 @@
+{"input_tokens": 5083, "output_tokens": 170, "text": "{\"category\": \"tax_documents\", \"confidence\": 0.9, \"flags\": {}, \"reasoning\": \"User is requesting access to a tax document (1099), a routine tax_documents request with no dispute of figures or other risk signals.\", \"urgency\": \"medium\"}"}

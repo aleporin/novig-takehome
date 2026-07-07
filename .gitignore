@@ -1,6 +1,5 @@
 secrets.env
 logs/
-.cache/
 results/tmp/
 __pycache__/
 *.py[cod]

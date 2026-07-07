@@ -1,0 +1,1 @@
+{"input_tokens": 3830, "output_tokens": 141, "text": "{\"category\": \"bug_report\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User reports a reproducible app crash on a specific feature (markets tab) after an update, with troubleshooting already attempted. This blocks core functionality and warrants prompt investigation.\", \"urgency\": \"high\"}"}

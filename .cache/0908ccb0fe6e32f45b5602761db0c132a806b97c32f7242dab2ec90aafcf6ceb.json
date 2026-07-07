@@ -1,0 +1,1 @@
+{"input_tokens": 5120, "output_tokens": 155, "text": "{\"category\": \"market_questions\", \"confidence\": 0.85, \"flags\": {}, \"reasoning\": \"User asks a routine question about settlement timing for a specific market, no risk signals present.\", \"urgency\": \"low\"}"}

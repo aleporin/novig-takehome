@@ -1,0 +1,1 @@
+{"input_tokens": 5131, "output_tokens": 182, "text": "{\"category\": \"problem_gambling\", \"confidence\": 0.9, \"flags\": {\"rg_signal\": true}, \"reasoning\": \"User is requesting a deposit limit for budgeting discipline, a clear RG signal, though tone is calm and not crisis-level.\", \"urgency\": \"medium\"}"}

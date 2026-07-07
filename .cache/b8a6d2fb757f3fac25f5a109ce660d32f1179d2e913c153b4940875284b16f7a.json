@@ -1,0 +1,1 @@
+{"input_tokens": 5123, "output_tokens": 196, "text": "{\"category\": \"bug_report\", \"confidence\": 0.85, \"flags\": {\"disputes_novig_fact\": false}, \"reasoning\": \"User reports a tiny balance discrepancy but attributes it to their own math error, not asking Novig to correct a figure; treated as minor bug flag rather than a dispute.\", \"urgency\": \"low\"}"}

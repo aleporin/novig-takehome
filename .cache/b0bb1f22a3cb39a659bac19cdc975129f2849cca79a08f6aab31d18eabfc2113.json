@@ -1,0 +1,1 @@
+{"input_tokens": 3829, "output_tokens": 145, "text": "{\"category\": \"kyc_verification\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User is blocked from trading due to repeated KYC rejections over two weeks with funds in account. This is a material access issue requiring urgent resolution, though no fraud or legal threat is present.\", \"urgency\": \"high\"}"}

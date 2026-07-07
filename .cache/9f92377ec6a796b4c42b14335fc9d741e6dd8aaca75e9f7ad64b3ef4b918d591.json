@@ -1,0 +1,1 @@
+{"input_tokens": 4968, "output_tokens": 188, "text": "{\"category\": \"market_questions\", \"confidence\": 0.85, \"flags\": {\"disputes_novig_fact\": true}, \"reasoning\": \"User is questioning the grading/settlement of a specific market, asking if it's a mistake, which disputes a Novig-provided fact (the resolution).\", \"urgency\": \"high\"}"}

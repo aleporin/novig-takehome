@@ -1,0 +1,1 @@
+{"input_tokens": 5127, "output_tokens": 172, "text": "{\"category\": \"tax_documents\", \"confidence\": 0.92, \"flags\": {}, \"reasoning\": \"User is requesting a missing 1099 tax document and where to find it, a routine tax document request without disputing figures or other risk signals.\", \"urgency\": \"medium\"}"}

@@ -1,0 +1,1 @@
+{"input_tokens": 5093, "output_tokens": 185, "text": "{\"category\": \"deposits_withdrawals\", \"confidence\": 0.85, \"flags\": {\"asks_binding_policy_or_spec\": true}, \"reasoning\": \"User asks a routine question about withdrawal fees, which touches on a policy detail but is low stakes and informational.\", \"urgency\": \"low\"}"}

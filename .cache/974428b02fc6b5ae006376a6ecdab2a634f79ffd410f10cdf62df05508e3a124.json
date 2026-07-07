@@ -1,0 +1,1 @@
+{"input_tokens": 5081, "output_tokens": 162, "text": "{\"category\": \"account_access\", \"confidence\": 0.85, \"flags\": {}, \"reasoning\": \"User is locked out due to non-arriving 2FA codes, a non-compromise account access issue blocking login.\", \"urgency\": \"high\"}"}

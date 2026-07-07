@@ -1,0 +1,1 @@
+{"input_tokens": 5172, "output_tokens": 176, "text": "{\"category\": \"market_questions\", \"confidence\": 0.85, \"flags\": {\"disputes_novig_fact\": false}, \"reasoning\": \"User explicitly states they are not disputing the settlement outcome, just asking about the timing/process of grading delay.\", \"urgency\": \"low\"}"}

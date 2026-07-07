@@ -1,0 +1,1 @@
+{"input_tokens": 3897, "output_tokens": 140, "text": "{\"category\": \"account_access\", \"confidence\": 0.95, \"flags\": {}, \"reasoning\": \"User is locked out of their own account email change due to a verification loop they cannot complete. This is a material access blocker that requires human intervention to bypass the automated flow.\", \"urgency\": \"high\"}"}
