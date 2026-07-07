@@ -22,9 +22,12 @@ HAIKU = "claude-haiku-4-5-20251001"
 SONNET = "claude-sonnet-5"
 OPUS = "claude-opus-4-8"  # reserved; not used yet
 
-# The judge is a cross-provider (GPT-class) model — the only non-Anthropic model in
-# the system, used in evals only. Pinned like the others; swap here if needed.
+# Judges are cross-provider models — the only non-Anthropic models in the system,
+# used in evals only. Two judges from different labs (OpenAI + Google) give an
+# independent read on drafts written by an Anthropic model, and their agreement
+# rate is itself an eval signal. Pinned like the others; swap here if needed.
 OPENAI_JUDGE = "gpt-5"
+GEMINI_JUDGE = "gemini-2.5-pro"
 
 # Models that reject the temperature parameter (deprecated on newer models). We omit
 # it for them, so their output is byte-reproducible via the disk cache, not via
@@ -46,6 +49,7 @@ MODEL_PRICING: dict[str, Pricing] = {
     SONNET: Pricing(3.00, 15.00),
     OPUS: Pricing(5.00, 25.00),
     OPENAI_JUDGE: Pricing(1.25, 10.00),  # OpenAI judge (eval-only); approximate
+    GEMINI_JUDGE: Pricing(1.25, 10.00),  # Google judge (eval-only); approximate
 }
 
 
@@ -74,7 +78,8 @@ class Config:
     # Which model each tier uses.
     model_t1: str = HAIKU
     model_t2: str = SONNET
-    model_judge: str = OPENAI_JUDGE  # cross-provider; eval-only; optional key
+    model_judge: str = OPENAI_JUDGE  # primary cross-provider judge; eval-only; optional key
+    model_judge_secondary: str = GEMINI_JUDGE  # second-lab judge for agreement; optional key
 
     # Draft length bound (characters) enforced by the output guardrail.
     draft_max_chars: int = 1600
@@ -127,7 +132,7 @@ def load_api_key(env_path: Path | None = None, *, required: bool = True) -> str 
 
 
 def load_openai_key(env_path: Path | None = None) -> str | None:
-    """Read OPENAI_API_KEY for the judge. Optional: returns None if absent.
+    """Read OPENAI_API_KEY for the primary judge. Optional: returns None if absent.
 
     The judge is the only thing that needs it, and it degrades gracefully — a
     missing key makes judge metrics report 'skipped', never an error.
@@ -136,3 +141,15 @@ def load_openai_key(env_path: Path | None = None) -> str | None:
 
     load_dotenv(env_path or (PROJECT_ROOT / "secrets.env"))
     return os.environ.get("OPENAI_API_KEY")
+
+
+def load_google_key(env_path: Path | None = None) -> str | None:
+    """Read GOOGLE_API_KEY for the secondary (Gemini) judge. Optional.
+
+    Same graceful-degrade contract as load_openai_key: a missing key just drops
+    the second judge from the agreement report.
+    """
+    from dotenv import load_dotenv
+
+    load_dotenv(env_path or (PROJECT_ROOT / "secrets.env"))
+    return os.environ.get("GOOGLE_API_KEY")

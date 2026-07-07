@@ -1,10 +1,13 @@
-"""Cross-provider (GPT-class) judge for draft quality. Eval-only.
+"""Cross-provider judges for draft quality. Eval-only.
 
-The only non-Anthropic model in the system. Missing OPENAI_API_KEY degrades
-gracefully: build_judge returns None and the reporter records 'skipped'. Same
-discipline as the Anthropic client — retries, timeout, disk cache, faked in tests —
-with the judge model pinned in config. Before any judge number is quoted, the judge
-must catch every seeded canary violation, or it is demoted.
+Two independent judges — OpenAI (GPT-class) and Google (Gemini) — the only
+non-Anthropic models in the system. Two different labs is deliberate: the drafter
+is Anthropic, so cross-lab judges give an independent read, and their agreement
+rate is itself an eval signal. Missing keys degrade gracefully: build_judges
+drops whichever judge has no key and the reporter records what actually ran.
+Same discipline as the Anthropic client — retries, timeout, disk cache, faked in
+tests — with judges pinned in config. Before any judge number is quoted, the
+judge must catch every seeded canary violation, or it is demoted.
 """
 
 from __future__ import annotations
@@ -18,7 +21,7 @@ from typing import Protocol, runtime_checkable
 from pydantic import BaseModel
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from triage.config import Config, load_openai_key
+from triage.config import Config, load_google_key, load_openai_key
 from triage.llm.cache import ResponseCache
 from triage.llm.types import LLMError, TransientLLMError
 from triage.routing.cost_tracker import CallRecord, call_cost
@@ -150,8 +153,110 @@ class OpenAIJudge:
         return parsed, usage.prompt_tokens, usage.completion_tokens
 
 
+class GeminiJudge:
+    """Google-backed judge with retries and disk caching.
+
+    Same seams as OpenAIJudge (score/JudgeVerdict/cache/records) so downstream
+    code treats both interchangeably behind the JudgeClient protocol.
+    """
+
+    def __init__(self, api_key, model, *, cache=None, timeout_s=60.0, max_retries=4) -> None:
+        self._api_key = api_key
+        self._model = model
+        self._cache = cache
+        self._timeout = timeout_s
+        self._max_retries = max_retries
+        self._client = None
+        self.calls: list[CallRecord] = []
+
+    def _gemini(self):
+        if self._client is None:
+            from google import genai
+
+            self._client = genai.Client(api_key=self._api_key)
+        return self._client
+
+    def score(self, system: str, user: str) -> JudgeVerdict:
+        key = _key(self._model, system, user)
+        if self._cache is not None:
+            cached = self._cache.get(key)
+            if cached is not None:
+                self._record(
+                    cached.get("tokens_in", 0), cached.get("tokens_out", 0), cache_hit=True
+                )
+                return JudgeVerdict.model_validate_json(cached["text"])
+        verdict, tokens_in, tokens_out = self._call_with_retry(system, user)
+        if self._cache is not None:
+            self._cache.set(
+                key,
+                {
+                    "text": verdict.model_dump_json(),
+                    "tokens_in": tokens_in,
+                    "tokens_out": tokens_out,
+                },
+                validator=lambda p: JudgeVerdict.model_validate_json(p["text"]),
+            )
+        self._record(tokens_in, tokens_out, cache_hit=False)
+        return verdict
+
+    def _record(self, tokens_in: int, tokens_out: int, *, cache_hit: bool) -> None:
+        cost = call_cost(self._model, tokens_in, tokens_out)
+        self.calls.append(
+            CallRecord(self._model, "judge", tokens_in, tokens_out, 0.0, cache_hit, cost)
+        )
+
+    def _call_with_retry(self, system: str, user: str) -> tuple[JudgeVerdict, int, int]:
+        retryer = retry(
+            reraise=True,
+            retry=retry_if_exception_type(TransientLLMError),
+            stop=stop_after_attempt(self._max_retries),
+            wait=wait_exponential(multiplier=0.5, max=8),
+        )
+        return retryer(self._invoke)(system, user)
+
+    def _invoke(self, system: str, user: str) -> tuple[JudgeVerdict, int, int]:
+        # Gemini structured output: pass the pydantic model as response_schema and
+        # ask for JSON mime type. The rubric goes in as system_instruction so the
+        # user turn holds only the ticket+draft — same shape as the OpenAI judge.
+        from google.genai import errors as genai_errors
+        from google.genai import types
+
+        try:
+            response = self._gemini().models.generate_content(
+                model=self._model,
+                contents=user,
+                config=types.GenerateContentConfig(
+                    system_instruction=system,
+                    response_mime_type="application/json",
+                    response_schema=JudgeVerdict,
+                    temperature=0.0,
+                ),
+            )
+        except genai_errors.APIError as exc:
+            # Rate limits and 5xx are transient; everything else is fatal.
+            status = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+            if status in (408, 429, 500, 502, 503, 504):
+                raise TransientLLMError(str(exc)) from exc
+            raise LLMError(str(exc)) from exc
+        parsed = getattr(response, "parsed", None)
+        if parsed is None:
+            # Fallback: model returned text-only JSON without SDK parsing.
+            text = getattr(response, "text", None)
+            if not text:
+                raise LLMError("gemini judge returned no parsed output")
+            parsed = JudgeVerdict.model_validate_json(text)
+        usage = getattr(response, "usage_metadata", None)
+        tokens_in = getattr(usage, "prompt_token_count", 0) or 0
+        tokens_out = getattr(usage, "candidates_token_count", 0) or 0
+        return parsed, tokens_in, tokens_out
+
+
 def build_judge(config: Config) -> JudgeClient | None:
-    """Return a judge, or None when OPENAI_API_KEY is absent (graceful skip)."""
+    """Return the primary (OpenAI) judge, or None when its key is absent.
+
+    Preserved for callers that only want one judge; new code should prefer
+    build_judges to get all trustworthy judges the environment allows.
+    """
     key = load_openai_key()
     if not key:
         return None
@@ -163,6 +268,45 @@ def build_judge(config: Config) -> JudgeClient | None:
         timeout_s=config.request_timeout_s,
         max_retries=config.max_retries,
     )
+
+
+def build_judges(config: Config) -> list[tuple[str, JudgeClient]]:
+    """Return (label, judge) pairs for every judge with a key, in run order.
+
+    Labels are short and human-readable ('openai', 'gemini') — they appear in
+    the metrics report and results filenames, so keep them stable.
+    """
+    cache = ResponseCache(config.paths.cache) if config.cache_enabled else None
+    judges: list[tuple[str, JudgeClient]] = []
+    openai_key = load_openai_key()
+    if openai_key:
+        judges.append(
+            (
+                "openai",
+                OpenAIJudge(
+                    openai_key,
+                    config.model_judge,
+                    cache=cache,
+                    timeout_s=config.request_timeout_s,
+                    max_retries=config.max_retries,
+                ),
+            )
+        )
+    google_key = load_google_key()
+    if google_key:
+        judges.append(
+            (
+                "gemini",
+                GeminiJudge(
+                    google_key,
+                    config.model_judge_secondary,
+                    cache=cache,
+                    timeout_s=config.request_timeout_s,
+                    max_retries=config.max_retries,
+                ),
+            )
+        )
+    return judges
 
 
 def load_rubric(config: Config) -> str:

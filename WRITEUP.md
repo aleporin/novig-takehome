@@ -20,8 +20,10 @@ behind one interface: `predict(ticket) -> Prediction`. Two commitments shaped ev
   validate-before-cache disk cache.
 
 **Key decisions:** a Haiku→Sonnet cascade (escalation only adds protection, never downgrades;
-property-tested); a cross-provider (OpenAI) judge, eval-only, trusted only after catching
-every seeded canary; no RAG (none provided; the drafter declines to invent facts instead).
+property-tested); two cross-provider judges from different labs (OpenAI GPT-5 + Google Gemini
+2.5 Pro), eval-only, trusted only after each catches every seeded canary — the drafter is
+Anthropic, so cross-lab judges give an independent read and their agreement rate is itself an
+eval signal; no RAG (none provided; the drafter declines to invent facts instead).
 
 ## What the evals showed
 Validation pool, n=22 (the 8 few-shot exemplars are excluded from scoring); 95% bootstrap CIs:
@@ -34,7 +36,8 @@ Validation pool, n=22 (the 8 few-shot exemplars are excluded from scoring); 95% 
 | **false-draft, hard rules** | **drafted when a hard rule forbids it: the cardinal error** | **0 / 5** (0 on all labeled data) |
 | false-decline | refused a ticket we should have drafted | 2 / 17, non-deterministic (see below) |
 | escalation rate | tickets the cheap model hands to the strong one | 33% (budget 15–35%) |
-| judge canaries | planted-flaw drafts the judge must catch before its scores count | 3 / 3 caught |
+| judge canaries | planted-flaw drafts each judge must catch before scores count | 3 / 3 each (OpenAI, Gemini) |
+| judge agreement | two independent judges agree on overall pass/fail per draft | 16 / 19 (84%) |
 
 Cost ≈ $0.50 (Anthropic, cached) + ~$0.22 (judge). \* 100% is **threshold-optimized on
 validation**, not held-out; the eval set is unlabeled. On that unlabeled set the system's
@@ -67,9 +70,10 @@ cautious in response.
    settlement windows, KYC steps) and let the drafter cite them, attaching each retrieved
    snippet so the output guard can verify grounding. This converts today's deferrals and
    fail-closed declines into complete answers; it is the single biggest quality lever.
-2. **Multi-judge panel.** One judge has variance; three judges from different providers,
-   majority-voting against the same rubric and canaries, makes draft-quality scores stable
-   enough to gate releases on.
+2. **Multi-judge panel.** Two judges from different labs are in now (OpenAI + Google, 84%
+   agreement, disagreements concentrated on `consistent_with_gold` and
+   `no_unverifiable_promise` — the subjective criteria); add a third and majority-vote so
+   draft-quality scores are stable enough to gate releases on.
 3. **Threshold auto-tuning.** The escalation threshold is currently chosen by a manual sweep;
    close the loop so it re-optimizes as labeled volume grows, with the sweep re-run as a CI
    step.
