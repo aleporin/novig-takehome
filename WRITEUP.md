@@ -108,6 +108,12 @@ says "I'm very sure this is high urgency" when it's actually medium. Because the
 is confident, the "escalate to Sonnet if you're not sure" safety net doesn't fire. The
 cascade fixes category mistakes, not urgency mistakes made with high confidence.
 
+Worth noting: every urgency mistake in the confusion matrix is an over-call, never
+an under-call. The system routes a not-urgent ticket to a human sooner than needed,
+but it never tries to auto-handle something urgent as if it were routine. That is
+the safe direction of error for this application, and it matches the rubric's point
+that a bad auto-draft on a sensitive ticket costs much more than a missed easy one.
+
 **Draft quality: one problem causes two symptoms.**
 The three judges flagged some drafts as not matching the ideal answer (OpenAI 8,
 Gemini 9, xAI 13). xAI is the strictest reader. Looking at the 8 that OpenAI flagged:
