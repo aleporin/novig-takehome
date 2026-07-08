@@ -102,16 +102,6 @@ because Sonnet doesn't accept a temperature setting, so its exact wording change
 safety gate itself (the deterministic Python one) never falsely refuses. Only the softer
 draft audit occasionally over-refuses.
 
-**Guardrail arc (now fixed).**
-The draft audit used to have a hole. It let three drafts through that were making up
-facts (`t_train_022`, `t_eval_008`, and the `t_eval_012` / `t_eval_002` class). I fixed
-it by adding a "facts list" check: any specific claim in the draft has to come from the
-ticket or the gold notes. I proved the fix works both ways. Three planted fake bad
-drafts, all three caught. One clean draft that mentions the customer's own numbers, not
-falsely rejected. The fix is slightly too strict on innocuous phrases like "we'll route
-this to our payments team." I left that alone because being over-strict is safe here,
-and the regeneration path handles the false alarms.
-
 **Urgency over-calls: `t_train_011`, `t_train_016`.**
 On these two, the classifier is confidently wrong about how urgent the ticket is. It
 says "I'm very sure this is high urgency" when it's actually medium. Because the model
