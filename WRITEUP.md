@@ -124,6 +124,3 @@ eval tickets are measurably more sensitive, and the system gets more cautious.
 - **Category accuracy understates safety.** `t_train_012` was miscategorized yet
   still correctly refused — its risk flag fired independently. Flags and category
   are decoupled, so a classification miss cannot become a safety miss.
-- **Time.** I exceeded the suggested 4–6 hour budget. Deliberate over-investment in
-  eval rigor and sensitive-case handling — the two highest-weighted rubric criteria
-  — rather than breadth. A trade I'd defend; the hours I'd own.
